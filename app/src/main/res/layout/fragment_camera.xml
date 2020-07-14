@@ -10,17 +10,13 @@
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/controls_layout">
-
-
-    </FrameLayout>
+        android:layout_above="@+id/controls_layout"/>
 
     <RelativeLayout
         android:id="@+id/controls_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-
         android:padding="10dp">
 
 
@@ -31,20 +27,12 @@
             android:layout_centerHorizontal="true"
             android:layout_margin="16dp"
             android:backgroundTint="@color/colorAccent"
-            android:tint="@color/white"
             android:clickable="true"
             android:focusable="true"
             android:onClick="onCameraClicked"
             android:src="@drawable/camera"
+            android:tint="@color/white"
             app:layout_anchorGravity="bottom|center" />
-        <!-- <ImageButton
-             android:id="@+id/capture"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_centerHorizontal="true"
-             android:background="@android:color/transparent"
-             android:src="@drawable/camera_capture" />
- -->
 
         <ImageView
             android:id="@+id/preview_iv"
@@ -62,18 +50,63 @@
             android:layout_centerVertical="true"
             android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/captureMode"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:clickable="true"
-            android:drawableTop="@drawable/ic_capture_single_off"
-            android:padding="5dp"
-            android:text="@string/single_mode"
-            android:textColor="@android:color/white"
-            android:textSize="10sp" />
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/llCaptureSingle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/ivCaptureSingle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/seelctor_drawable_camera_capture_mode_single" />
+
+                <TextView
+                    android:id="@+id/tvCaptureSingle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/single_mode"
+                    android:textColor="@color/seelctor_camera_capture_mode"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llCaptureBatch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/ivCaptureBatch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/seelctor_drawable_camera_capture_mode_batch" />
+
+                <TextView
+                    android:id="@+id/tvCaptureBatch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/batch_mode"
+                    android:textColor="@color/seelctor_camera_capture_mode"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
 
     </RelativeLayout>
 

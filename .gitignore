@@ -2,3 +2,6 @@
 /imagestopdf/build/
 /.gradle/
 /.idea/
+/app/build/generated/res/pngs/debug/
+/app/build/generated/res/pngs/debug/
+/app/build/

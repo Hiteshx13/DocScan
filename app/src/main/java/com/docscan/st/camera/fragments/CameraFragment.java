@@ -24,7 +24,6 @@
 package com.docscan.st.camera.fragments;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -38,13 +37,21 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatImageView;
+
+import com.docscan.st.R;
+import com.docscan.st.camera.model.FlashMode;
+import com.docscan.st.camera.model.FocusMode;
+import com.docscan.st.camera.model.HDRMode;
 import com.docscan.st.camera.model.Quality;
 import com.docscan.st.camera.model.Ratio;
+import com.docscan.st.db.models.NoteGroup;
 import com.docscan.st.fragment.BaseFragment;
 import com.docscan.st.interfaces.CameraParamsChangedListener;
 import com.docscan.st.interfaces.FocusCallback;
@@ -52,14 +59,16 @@ import com.docscan.st.interfaces.KeyEventsListener;
 import com.docscan.st.interfaces.PhotoSavedListener;
 import com.docscan.st.interfaces.PhotoTakenCallback;
 import com.docscan.st.interfaces.RawPhotoTakenCallback;
+import com.docscan.st.main.CameraConst;
 import com.docscan.st.manager.ImageManager;
+import com.docscan.st.utils.PhotoUtil;
 import com.docscan.st.views.BadgeView;
 import com.docscan.st.views.CameraPreview;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.scanlibrary.OnBatchCompleteListener;
+import com.scanlibrary.OnClearListener;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
-
-import org.parceler.Parcels;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,14 +77,6 @@ import java.util.List;
 import java.util.Map;
 
 import timber.log.Timber;
-import com.docscan.st.R;
-import com.docscan.st.activity.NoteGroupActivity;
-import com.docscan.st.camera.model.FlashMode;
-import com.docscan.st.camera.model.FocusMode;
-import com.docscan.st.camera.model.HDRMode;
-import com.docscan.st.db.models.NoteGroup;
-import com.docscan.st.main.CameraConst;
-import com.docscan.st.utils.PhotoUtil;
 
 public class CameraFragment extends BaseFragment implements PhotoSavedListener, KeyEventsListener, CameraParamsChangedListener, FocusCallback {
 
@@ -121,29 +122,37 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
 
     private int cameraId;
     private int outputOrientation;
-    private TextView mCaptureModeTV;
+    private TextView tvCaptureSingle, tvCaptureBatch;
+    private LinearLayout llCaptureSingle, llCaptureBatch;
+    private AppCompatImageView ivCaptureSingle, ivCaptureBatch;
     private int captureMode;
     private ImageView previewImageView;
     private BadgeView badgeView;
     private int previewCount;
     private ProgressBar mProgress;
     private ProgressDialog progressDialog;
-    List<Camera.Size> mSupportedPreviewSizes;
+    private List<Camera.Size> mSupportedPreviewSizes;
+    private OnBatchCompleteListener batchOkListener;
+    private OnClearListener clearListener;
 
 
-    public static CameraFragment newInstance(int layoutId, PhotoTakenCallback callback, Bundle params) {
+   /* public static CameraFragment newInstance(int layoutId, PhotoTakenCallback callback, Bundle params, OnBatchCompleteListener  batchOkListener) {
         CameraFragment fragment = new CameraFragment();
         fragment.layoutId = layoutId;
+        fragment.batchOkListener = batchOkListener;
         fragment.callback = callback;
         fragment.setArguments(params);
 
-        return fragment;
-    }
 
-    public static CameraFragment newInstance(PhotoTakenCallback callback, Bundle params) {
+        return fragment;
+    }*/
+
+    public static CameraFragment newInstance(PhotoTakenCallback callback, Bundle params, OnBatchCompleteListener batchOkListener, OnClearListener clearListener) {
         CameraFragment fragment = new CameraFragment();
         fragment.callback = callback;
         fragment.layoutId = R.layout.fragment_camera;
+        fragment.batchOkListener = batchOkListener;
+        fragment.clearListener = clearListener;
         fragment.setArguments(params);
 
         return fragment;
@@ -228,17 +237,30 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         }
 
         captureMode = getArguments().getInt(CAPTURE_MODE, CameraConst.CAPTURE_SINGLE_MODE);
-        mCaptureModeTV = view.findViewById(R.id.captureMode);
-        if (mCaptureModeTV != null) {
-            setCaptureMode(captureMode);
-            mCaptureModeTV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onCaptureModeClicked();
-                }
 
-            });
-        }
+        llCaptureSingle = view.findViewById(R.id.llCaptureSingle);
+        llCaptureBatch = view.findViewById(R.id.llCaptureBatch);
+
+        tvCaptureSingle = view.findViewById(R.id.tvCaptureSingle);
+        tvCaptureBatch = view.findViewById(R.id.tvCaptureBatch);
+
+        ivCaptureSingle = view.findViewById(R.id.ivCaptureSingle);
+        ivCaptureBatch = view.findViewById(R.id.ivCaptureBatch);
+
+        setCaptureMode(captureMode);
+        llCaptureSingle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCaptureModeClicked(false);
+            }
+        });
+
+        llCaptureBatch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCaptureModeClicked(true);
+            }
+        });
 
         //preview badge view
         previewImageView = view.findViewById(R.id.preview_iv);
@@ -281,16 +303,19 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         return view;
     }
 
-    private void onCaptureModeClicked() {
-        if (captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
+    private void onCaptureModeClicked(Boolean isBatch) {
+
+        if (isBatch && captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
             captureMode = CameraConst.CAPTURE_BATCH_MODE;
             previewCount = 0;
-        } else {
+            clearListener.onClear();
+        } else if (!isBatch) {
             captureMode = CameraConst.CAPTURE_SINGLE_MODE;
             hidePreviewImage();
         }
         if (paramsChangedListener != null)
             paramsChangedListener.onCaptureModeChanged(captureMode);
+
 
         setCaptureMode(captureMode);
     }
@@ -301,23 +326,31 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     }
 
     public void setCaptureMode(int mode) {
-        if (mCaptureModeTV != null) {
-            int drawable = R.drawable.ic_capture_single_off;
-            int text = R.string.single_mode;
+        if (tvCaptureSingle != null) {
+
             switch (mode) {
                 case CameraConst.CAPTURE_SINGLE_MODE:
-                    drawable = R.drawable.ic_capture_single_off;
-                    text = R.string.single_mode;
+
+                    tvCaptureSingle.setSelected(true);
+                    tvCaptureBatch.setSelected(false);
+
+                    ivCaptureSingle.setSelected(true);
+                    ivCaptureBatch.setSelected(false);
+
                     break;
 
                 case CameraConst.CAPTURE_BATCH_MODE:
-                    drawable = R.drawable.ic_capture_batch_off;
-                    text = R.string.batch_mode;
+                    tvCaptureSingle.setSelected(false);
+                    tvCaptureBatch.setSelected(true);
+
+                    ivCaptureSingle.setSelected(false);
+                    ivCaptureBatch.setSelected(true);
+
                     break;
             }
 
-            mCaptureModeTV.setText(getText(text));
-            mCaptureModeTV.setCompoundDrawablesWithIntrinsicBounds(0, drawable, 0, 0);
+            //mCaptureModeTV.setText(getText(text));
+            //tvCaptureSingle.setCompoundDrawablesWithIntrinsicBounds(0, drawable, 0, 0);
         }
     }
 
@@ -618,7 +651,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     @Override
     public void takePhoto() {
         mCapture.setEnabled(false);
-       // mCapture.setVisibility(View.INVISIBLE);
+        // mCapture.setVisibility(View.INVISIBLE);
 //        ((ImageButton)mCapture).setImageResource(0);
 
         cameraPreview.takePicture();
@@ -841,9 +874,11 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     }
 
     private void openNoteGroupActivity(NoteGroup noteGroup) {
-        Intent intent = new Intent(getActivity(), NoteGroupActivity.class);
-        intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(noteGroup));
-        startActivity(intent);
+
+        batchOkListener.onComplete();
+//        Intent intent = new Intent(getActivity(), NoteGroupActivity.class);
+//        intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(noteGroup));
+//        startActivity(intent);
     }
 
     private void hidePreviewImage() {

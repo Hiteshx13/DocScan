@@ -1,8 +1,8 @@
 package com.scanlibrary;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
@@ -20,25 +20,37 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import androidx.fragment.app.Fragment;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.scanlibrary.ScanActivity.IMAGES;
+
 /**
  * Created by jhansi on 29/03/15.
  */
 public class ScanFragment extends Fragment {
 
-    private Button scanButton;
+//    private Button scanButton;
     private ImageView sourceImageView;
     private FrameLayout sourceFrame;
     private PolygonView polygonView;
     private View view;
     private ProgressDialogFragment progressDialogFragment;
     private IScanner scanner;
+    //    private Uri finalUri;
     private Bitmap original;
+    String imagePath;
+    ScanActivity scanActivity;
+
+    public ScanFragment(Context context) {
+        this.scanActivity = (ScanActivity) context;
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -52,20 +64,18 @@ public class ScanFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.scan_fragment_layout, null);
+        imagePath = (String) this.getArguments().get(IMAGES);
         init();
         return view;
     }
 
-    public ScanFragment() {
-
-    }
 
     private void init() {
-        sourceImageView = (ImageView) view.findViewById(R.id.sourceImageView);
-        scanButton = (Button) view.findViewById(R.id.scanButton);
-        scanButton.setOnClickListener(new ScanButtonClickListener());
-        sourceFrame = (FrameLayout) view.findViewById(R.id.sourceFrame);
-        polygonView = (PolygonView) view.findViewById(R.id.polygonView);
+        sourceImageView = view.findViewById(R.id.sourceImageView);
+//        scanButton = view.findViewById(R.id.scanButton);
+       // scanButton.setOnClickListener(new ScanButtonClickListener());
+        sourceFrame = view.findViewById(R.id.sourceFrame);
+        polygonView = view.findViewById(R.id.polygonView);
         sourceFrame.post(new Runnable() {
             @Override
             public void run() {
@@ -77,11 +87,28 @@ public class ScanFragment extends Fragment {
         });
     }
 
+    public Map<Integer, PointF> getPoints() {
+        return polygonView.getPoints();
+    }
+
+    public Bitmap getOriginalBitmap() {
+        return original;
+    }
+
+    public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints) {
+        Log.d("performOnClick", "start...");
+        //if (isScanPointsValid(points)) {
+        new ScanAsyncTask(imageList, listPoints).execute();
+        //} else {
+        //  showErrorDialog();
+//        }
+    }
+
     private Bitmap getBitmap() {
         Uri uri = getUri();
         try {
             Bitmap bitmap = Utils.getBitmap(getActivity(), uri);
-            getActivity().getContentResolver().delete(uri, null, null);
+//            getActivity().getContentResolver().delete(uri, null, null);
             return bitmap;
         } catch (IOException e) {
             e.printStackTrace();
@@ -90,7 +117,7 @@ public class ScanFragment extends Fragment {
     }
 
     private Uri getUri() {
-        Uri uri = getArguments().getParcelable(ScanConstants.SELECTED_BITMAP);
+        Uri uri = Uri.fromFile(new File(imagePath)); //getArguments().getParcelable(ScanConstants.SELECTED_BITMAP);
         return uri;
     }
 
@@ -114,7 +141,7 @@ public class ScanFragment extends Fragment {
     }
 
     private List<PointF> getContourEdgePoints(Bitmap tempBitmap) {
-        float[] points = ((ScanActivity) getActivity()).getPoints(tempBitmap);
+        float[] points = scanActivity.getPoints(tempBitmap);
         float x1 = points[0];
         float x2 = points[1];
         float x3 = points[2];
@@ -150,17 +177,25 @@ public class ScanFragment extends Fragment {
         return orderedPoints;
     }
 
-    private class ScanButtonClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-            Map<Integer, PointF> points = polygonView.getPoints();
-            if (isScanPointsValid(points)) {
-                new ScanAsyncTask(points).execute();
-            } else {
-                showErrorDialog();
-            }
-        }
-    }
+//    private class ScanButtonClickListener implements View.OnClickListener {
+//        @Override
+//        public void onClick(View v) {
+//            final Map<Integer, PointF> points = polygonView.getPoints();
+//
+//
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (isScanPointsValid(points)) {
+//                        new ScanAsyncTask(points).execute();
+//                    } else {
+//                        showErrorDialog();
+//                    }
+//                }
+//            }).start();
+//
+//        }
+//    }
 
     private void showErrorDialog() {
         SingleButtonDialogFragment fragment = new SingleButtonDialogFragment(R.string.ok, getString(R.string.cantCrop), "Error", true);
@@ -193,16 +228,18 @@ public class ScanFragment extends Fragment {
         float y3 = (points.get(2).y) * yRatio;
         float y4 = (points.get(3).y) * yRatio;
         Log.d("", "POints(" + x1 + "," + y1 + ")(" + x2 + "," + y2 + ")(" + x3 + "," + y3 + ")(" + x4 + "," + y4 + ")");
-        Bitmap _bitmap = ((ScanActivity) getActivity()).getScannedBitmap(original, x1, y1, x2, y2, x3, y3, x4, y4);
+        Bitmap _bitmap = scanActivity.getScannedBitmap(original, x1, y1, x2, y2, x3, y3, x4, y4);
         return _bitmap;
     }
 
-    private class ScanAsyncTask extends AsyncTask<Void, Void, Bitmap> {
+    private class ScanAsyncTask extends AsyncTask<Void, Void, ArrayList<Uri>> {
 
-        private Map<Integer, PointF> points;
+        private ArrayList<Bitmap> imageList;
+        private ArrayList<Map<Integer, PointF>> listPoints;
 
-        public ScanAsyncTask(Map<Integer, PointF> points) {
-            this.points = points;
+        public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints) {
+            this.imageList = imageList;
+            this.listPoints = listPoints;
         }
 
         @Override
@@ -212,24 +249,31 @@ public class ScanFragment extends Fragment {
         }
 
         @Override
-        protected Bitmap doInBackground(Void... params) {
-            Bitmap bitmap =  getScannedBitmap(original, points);
-            Uri uri = Utils.getUri(getActivity(), bitmap);
-            scanner.onScanFinish(uri);
-            return bitmap;
+        protected ArrayList<Uri> doInBackground(Void... params) {
+            ArrayList<Uri> listUri = new ArrayList<>();
+
+            for (int i = 0; i < imageList.size(); i++) {
+                Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));
+                Uri uri = Utils.getImageUri(getActivity(), bitmap);
+                listUri.add(uri);
+                scanner.onScanFinish(uri);
+                bitmap.recycle();
+            }
+
+            return listUri;
         }
 
         @Override
-        protected void onPostExecute(Bitmap bitmap) {
+        protected void onPostExecute(ArrayList<Uri> bitmap) {
             super.onPostExecute(bitmap);
-            bitmap.recycle();
+            //bitmap.recycle();
             dismissDialog();
         }
     }
 
     protected void showProgressDialog(String message) {
         progressDialogFragment = new ProgressDialogFragment(message);
-        FragmentManager fm = getFragmentManager();
+        FragmentManager fm = scanActivity.getFragmentManager();
         progressDialogFragment.show(fm, ProgressDialogFragment.class.toString());
     }
 

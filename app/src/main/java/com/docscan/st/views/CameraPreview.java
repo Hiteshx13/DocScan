@@ -32,6 +32,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -55,7 +56,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private static final int DISPLAY_ORIENTATION = 90;
     private static final float FOCUS_AREA_SIZE = 75f;
-    private static final float STROKE_WIDTH = 5f;
+    private static final float STROKE_WIDTH = 1f;
     private static final float FOCUS_AREA_FULL_SIZE = 2000f;
     private static final int ACCURACY = 3;
 
@@ -222,6 +223,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 //        canvas.drawLine(rect.right, rect.top, rect.right, rect.bottom, paint);
 //        canvas.drawLine(rect.right, rect.bottom, rect.left, rect.bottom, paint);
 //        canvas.drawLine(rect.left, rect.bottom, rect.left, rect.top, paint);
+        Log.d("#Focus",">>>>>>>>");
         canvasFrame.draw(canvas);
         canvasFrame.invalidate();
     }
