@@ -17,6 +17,8 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.parceler.Parcels;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -100,6 +102,12 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
         return getIntent().getIntExtra(ScanConstants.OPEN_INTENT_PREFERENCE, 0);
     }
 
+    void sendResults(ArrayList<Uri> results){
+        Intent intent = new Intent();
+        intent.putExtra(IMAGES, results);
+        setResult(RESULT_OK, intent);
+        finish();
+    }
     @Override
     public void onBitmapSelect(Uri uri) {
 

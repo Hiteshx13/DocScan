@@ -236,6 +236,7 @@ public class ScanFragment extends Fragment {
 
         private ArrayList<Bitmap> imageList;
         private ArrayList<Map<Integer, PointF>> listPoints;
+        ArrayList<Uri> listUri = new ArrayList<>();
 
         public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints) {
             this.imageList = imageList;
@@ -250,7 +251,7 @@ public class ScanFragment extends Fragment {
 
         @Override
         protected ArrayList<Uri> doInBackground(Void... params) {
-            ArrayList<Uri> listUri = new ArrayList<>();
+
 
             for (int i = 0; i < imageList.size(); i++) {
                 Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));
@@ -267,6 +268,7 @@ public class ScanFragment extends Fragment {
         protected void onPostExecute(ArrayList<Uri> bitmap) {
             super.onPostExecute(bitmap);
             //bitmap.recycle();
+            scanActivity.sendResults(listUri);
             dismissDialog();
         }
     }
