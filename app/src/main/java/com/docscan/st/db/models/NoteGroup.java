@@ -24,7 +24,7 @@ public class NoteGroup extends BaseModel {
 
     @Column
     @PrimaryKey(autoincrement = true)
-    public int id;
+    public static int id;
 
     @Column
     public String name; //this is image name
@@ -45,7 +45,7 @@ public class NoteGroup extends BaseModel {
         if (notes == null || notes.isEmpty()) {
             notes = SQLite.select()
                     .from(Note.class)
-                    //.where(Note.noteGroupId.eq(id))
+                    .where(Note_Table.noteId.eq(id))
                     .queryList();
         }
         return notes;

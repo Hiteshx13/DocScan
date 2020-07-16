@@ -1,5 +1,5 @@
 package com.scanlibrary;
 
 public interface OnClearListener {
-    void onClear();
+    void onClear(boolean isBatch);
 }

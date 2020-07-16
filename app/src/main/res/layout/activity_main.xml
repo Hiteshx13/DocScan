@@ -24,19 +24,22 @@
                 tools:listitem="@layout/notegroup_layout"
                 android:clipToPadding="false"
                 android:padding="@dimen/item_offset"
-                android:visibility="visible"
+                android:visibility="gone"
                 >
 
             </androidx.recyclerview.widget.RecyclerView>
 
-            <ImageView
+            <TextView
                 android:id="@+id/emptyView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:src="@drawable/empty_notes_view"
-                android:visibility="gone"/>
+                android:text="No data found"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:visibility="visible"/>
 
             <ProgressBar
                 android:id="@+id/progress"

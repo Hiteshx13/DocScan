@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
@@ -15,6 +16,7 @@ import android.view.ViewTreeObserver;
 
 import com.docscan.st.R;
 import com.docscan.st.camera.fragments.CameraFragment;
+import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.NoteGroup;
 import com.docscan.st.interfaces.CameraParamsChangedListener;
 import com.docscan.st.interfaces.KeyEventsListener;
@@ -27,17 +29,16 @@ import com.docscan.st.manager.ImageManager;
 import com.docscan.st.manager.SharedPrefManager;
 import com.docscan.st.utils.PhotoUtil;
 import com.docscan.st.utils.SavingPhotoTask;
-import com.docscan.st.utils.TransformAndSaveTask;
 import com.docscan.st.views.RevealBackgroundView;
 import com.scanlibrary.OnBatchCompleteListener;
 import com.scanlibrary.OnClearListener;
 import com.scanlibrary.ScanActivity;
-import com.scanlibrary.ScanConstants;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 import org.parceler.Parcels;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +47,8 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
+
+import static com.docscan.st.utils.AppUtility.CAMERA_REQUEST_CODE;
 
 public class CameraActivity extends BaseActivity implements RevealBackgroundView.OnStateChangeListener, PhotoTakenCallback, PhotoSavedListener, RawPhotoTakenCallback, CameraParamsChangedListener {
 
@@ -58,9 +61,9 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     private static final String IMG_PREFIX = "IMG_";
     private static final String IMG_POSTFIX = ".jpg";
     private static final String TIME_FORMAT = "yyyyMMdd_HHmmss";
+    static String IMAGES = "image_list";
     ArrayList<String> imageList = new ArrayList<>();
 
-    public static final int CAMERA_REQUEST_CODE = 0x9812;
 
     private KeyEventsListener keyEventsListener;
     private PhotoSavedListener photoSavedListener;
@@ -71,9 +74,10 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     private boolean saving;
 
     private int captureMode = CameraConst.CAPTURE_SINGLE_MODE;
-    private NoteGroup mNoteGroup;
+
     private CameraFragment fragment;
     public static final String ARG_REVEAL_START_LOCATION = "reveal_start_location";
+    private boolean isSingleClick = true;
 
     @BindView(R.id.vRevealBackground)
     RevealBackgroundView vRevealBackground;
@@ -81,14 +85,15 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     @BindView(R.id.fragment_content)
     View fragmentView;
 
-    public static void startCameraFromLocation(int[] startingLocation, Activity startingActivity, NoteGroup mNoteGroup) {
+    public static void
+    startCameraFromLocation(int[] startingLocation, Activity startingActivity, NoteGroup mNoteGroup) {
         Intent intent = new Intent(startingActivity, CameraActivity.class);
         intent.putExtra(ARG_REVEAL_START_LOCATION, startingLocation);
         intent.putExtra(PATH, Const.FOLDERS.PATH);
         intent.putExtra(CAPTURE_MODE, CameraConst.CAPTURE_SINGLE_MODE);
         intent.putExtra(USE_FRONT_CAMERA, false);
-        if (mNoteGroup != null)
-            intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
+//        if (mNoteGroup != null)
+//            intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
 
         startingActivity.startActivityForResult(intent, CAMERA_REQUEST_CODE);
     }
@@ -122,7 +127,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
             SharedPrefManager.i.setUseFrontCamera(useFrontCamera);
         }
 
-        mNoteGroup = Parcels.unwrap(getIntent().getParcelableExtra(NoteGroup.class.getSimpleName()));
+        //  mNoteGroup = Parcels.unwrap(getIntent().getParcelableExtra(NoteGroup.class.getSimpleName()));
 
         init();
     }
@@ -157,7 +162,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
             }
         }, new OnClearListener() {
             @Override
-            public void onClear() {
+            public void onClear(boolean isBatch) {
                 imageList.clear();
             }
         });
@@ -206,22 +211,33 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
     @Override
     public void photoSaved(String path, String name) {
+        imageList.add(path);
         saving = false;
 //        Toast.makeText(this, "Photo " + name + " saved", Toast.LENGTH_SHORT).show();
         Timber.d("Photo " + name + " saved");
         if (CameraConst.DEBUG) {
             printExifOrientation(path);
         }
-        ArrayList<String> list = new ArrayList<>();
+
+        //addNoteToDB(name);
         if (captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
             if (fragment != null)
                 fragment.hideProcessingDialog();
+//            saveTransformedImage(path, name);
 
 
-            list.add(path);
-            openPreview(list);
+            //ArrayList<String> list = new ArrayList<>();
+            //list.add(path);
+            openPreview(imageList);
+
+            // openPreview(list);
         } else {
-            saveTransformedImage(path, name);
+//            fragment.setPreviewImage(path);
+
+            if (fragment != null)
+                fragment.setPreviewImage(path);
+            //addNoteToDB(name);
+//            saveTransformedImage(path, name);
         }
 
         if (photoSavedListener != null) {
@@ -229,24 +245,31 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
         }
     }
 
+
+
     @Override
     public void onNoteGroupSaved(NoteGroup noteGroup) {
 
     }
 
     private void saveTransformedImage(final String path, final String name) {
-        imageList.add(path);
+
         Target loadingTarget = new Target() {
 
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
 
-                new TransformAndSaveTask(mNoteGroup, name, bitmap, new PhotoSavedListener() {
+                /*new TransformAndSaveTask(mNoteGroup, name, bitmap, new PhotoSavedListener() {
                     String croppedPath = "";
 
                     @Override
                     public void photoSaved(String path, String name) {
 //                        Toast.makeText(CameraActivity.this, "Photo " + name + " saved1", Toast.LENGTH_SHORT).show();
+                        if (captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
+                            ArrayList<String> list = new ArrayList<>();
+                            list.add(path);
+                            openPreview(list);
+                        }
                         croppedPath = path;
                     }
 
@@ -256,7 +279,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
                         if (fragment != null)
                             fragment.setPreviewImage(croppedPath, noteGroup);
                     }
-                }).execute();
+                }).execute();*/
 
             }
 
@@ -281,9 +304,11 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     private void openPreview(ArrayList<String> list) {
 
         Intent intent = ScanActivity.getActivityIntent(this, list);
+//        if (mNoteGroup != null)
+//            intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
         startActivityForResult(intent, BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT);
         overridePendingTransition(R.anim.slide_left_in, R.anim.slide_left_out);
-
+        //finish();
 
 //        Intent intent = new Intent(this, ScannerActivity.class);
 //        intent.putExtra(BaseScannerActivity.EXTRAS.PATH, path);
@@ -306,13 +331,26 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
                     PhotoUtil.deletePhoto(path);
                     break;
                 case RESULT_OK:
-                    mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
-                    if (mNoteGroup != null) {
-                        Intent intent = new Intent();
-                        intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
-                        setResult(RESULT_OK, intent);
-                        finish();
-                    }
+                    //mNoteGroup = null;
+                    ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
+
+//                    for (int i = 0; i < list.size(); i++) {
+//                        File file = new File(list.get(i).getPath());
+//                        saveTransformedImage(file.getPath(), file.getName());
+//                    }
+//                    // DBManager.getInstance().createNoteGroup(name);
+//
+
+
+
+//                    mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
+                    // if (mNoteGroup != null) {
+                    Intent intent = new Intent();
+                    intent.putExtra(IMAGES, list);
+//                    intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
+                    setResult(RESULT_OK, intent);
+                    finish();
+                    // }
                     break;
 
             }
@@ -375,7 +413,11 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
     @Override
     public void onCaptureModeChanged(int mode) {
-        captureMode = mode;
+
+        if (captureMode != mode) {
+            captureMode = mode;
+//            mNoteGroup = null;
+        }
     }
 
     @Override

@@ -23,7 +23,7 @@
 
 <resources>
 
-    <string name="app_name">Document Scanner</string>
+    <string name="app_name">DocScan</string>
     <string name="lbl_string_apply">Apply</string>
     <string name="lbl_cancel">Cancel</string>
     <string name="lbl_delete">Delete</string>

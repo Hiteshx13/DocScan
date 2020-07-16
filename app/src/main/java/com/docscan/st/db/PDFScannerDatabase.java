@@ -8,7 +8,7 @@ import com.raizlabs.android.dbflow.annotation.Database;
 @Database(name = PDFScannerDatabase.NAME, version = PDFScannerDatabase.VERSION)
 public class PDFScannerDatabase {
 
-    public static final String NAME = "PDFScannerDatabase";
+    public static final String NAME = "DocScanDatabase";
 
-    public static final int VERSION = 2;
+    public static final int VERSION = 1;
 }

@@ -18,6 +18,7 @@ import java.util.Date;
  * Created by jhansi on 05/04/15.
  */
 public class Utils {
+    static String IMAGES = "image_list";
 
     private Utils() {
 
@@ -33,7 +34,7 @@ public class Utils {
     private static String createName() {
         String IMG_PREFIX = "IMG_";
         String IMG_POSTFIX = ".jpg";
-        String TIME_FORMAT = "yyyyMMdd_HHmmss";
+        String TIME_FORMAT = "yyyyMMdd_HH_mm_ss";
 
         String timeStamp = new SimpleDateFormat(TIME_FORMAT).format(new Date());
         return IMG_PREFIX + timeStamp + IMG_POSTFIX;
@@ -58,11 +59,30 @@ public class Utils {
         return new File(dir.getPath() + File.separator + createName());
     }
 
+    private static File getCropMediaFile() {
+        // To be safe, we should check that the SDCard is mounted
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            Log.e("External storage ", "" + Environment.getExternalStorageState());
+            return null;
+        }
+
+        File dir = new File(Const.FOLDERS.CROP_IMAGE_PATH);
+        // Create the storage directory if it doesn't exist
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                Log.e("", "Failed to create directory");
+                return null;
+            }
+        }
+
+        return new File(dir.getPath() + File.separator + createName());
+    }
+
     public static Uri getImageUri(Context context, Bitmap bitmap) {
 
-        File file=getOutputMediaFile();
+        File file = getCropMediaFile();
         try (FileOutputStream out = new FileOutputStream(file)) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG,100,out);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
         } catch (Exception e) {
             e.printStackTrace();
         }

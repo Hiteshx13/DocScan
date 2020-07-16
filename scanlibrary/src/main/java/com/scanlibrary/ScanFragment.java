@@ -16,7 +16,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -29,14 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.scanlibrary.ScanActivity.IMAGES;
-
 /**
  * Created by jhansi on 29/03/15.
  */
 public class ScanFragment extends Fragment {
 
-//    private Button scanButton;
+    //    private Button scanButton;
     private ImageView sourceImageView;
     private FrameLayout sourceFrame;
     private PolygonView polygonView;
@@ -64,7 +61,7 @@ public class ScanFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.scan_fragment_layout, null);
-        imagePath = (String) this.getArguments().get(IMAGES);
+        imagePath = (String) this.getArguments().get(Utils.IMAGES);
         init();
         return view;
     }
@@ -73,7 +70,7 @@ public class ScanFragment extends Fragment {
     private void init() {
         sourceImageView = view.findViewById(R.id.sourceImageView);
 //        scanButton = view.findViewById(R.id.scanButton);
-       // scanButton.setOnClickListener(new ScanButtonClickListener());
+        // scanButton.setOnClickListener(new ScanButtonClickListener());
         sourceFrame = view.findViewById(R.id.sourceFrame);
         polygonView = view.findViewById(R.id.polygonView);
         sourceFrame.post(new Runnable() {
@@ -95,10 +92,14 @@ public class ScanFragment extends Fragment {
         return original;
     }
 
-    public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints) {
+    public String getOriginalPath() {
+        return imagePath;
+    }
+
+    public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath) {
         Log.d("performOnClick", "start...");
         //if (isScanPointsValid(points)) {
-        new ScanAsyncTask(imageList, listPoints).execute();
+        new ScanAsyncTask(imageList, listPoints, listPath).execute();
         //} else {
         //  showErrorDialog();
 //        }
@@ -237,10 +238,12 @@ public class ScanFragment extends Fragment {
         private ArrayList<Bitmap> imageList;
         private ArrayList<Map<Integer, PointF>> listPoints;
         ArrayList<Uri> listUri = new ArrayList<>();
+        private ArrayList<String> listPath;
 
-        public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints) {
+        public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath) {
             this.imageList = imageList;
             this.listPoints = listPoints;
+            this.listPath = listPath;
         }
 
         @Override
@@ -257,7 +260,11 @@ public class ScanFragment extends Fragment {
                 Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));
                 Uri uri = Utils.getImageUri(getActivity(), bitmap);
                 listUri.add(uri);
-                scanner.onScanFinish(uri);
+
+                File file = new File(listPath.get(i));
+                if (file.exists()) {
+                    file.delete();
+                }
                 bitmap.recycle();
             }
 
@@ -265,10 +272,11 @@ public class ScanFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Uri> bitmap) {
-            super.onPostExecute(bitmap);
+        protected void onPostExecute(ArrayList<Uri> listBitmap) {
+            super.onPostExecute(listBitmap);
             //bitmap.recycle();
-            scanActivity.sendResults(listUri);
+//            scanActivity.sendResults(listUri);
+            scanner.onScanFinish(listBitmap);
             dismissDialog();
         }
     }

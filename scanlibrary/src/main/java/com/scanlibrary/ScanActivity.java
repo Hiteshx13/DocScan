@@ -22,12 +22,14 @@ import org.parceler.Parcels;
 import java.util.ArrayList;
 import java.util.Map;
 
+import static com.scanlibrary.Utils.IMAGES;
+
 /**
  * Created by jhansi on 28/03/15.
  */
 public class ScanActivity extends FragmentActivity implements IScanner, ComponentCallbacks2 {
 
-    static String IMAGES = "image_list";
+
     ArrayList<String> imageList;
     ScreenSlidePagerAdapter pagerAdapter;
     FloatingActionButton btnDone;
@@ -102,16 +104,13 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
         return getIntent().getIntExtra(ScanConstants.OPEN_INTENT_PREFERENCE, 0);
     }
 
-    void sendResults(ArrayList<Uri> results){
-        Intent intent = new Intent();
-        intent.putExtra(IMAGES, results);
-        setResult(RESULT_OK, intent);
-        finish();
-    }
+
     @Override
     public void onBitmapSelect(Uri uri) {
 
         Log.d("#URI Cropped Uri", "" + uri);
+
+
 //        ScanFragment fragment = new ScanFragment(this);
 //        Bundle bundle = new Bundle();
 //        bundle.putParcelable(ScanConstants.SELECTED_BITMAP, uri);
@@ -124,8 +123,11 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
     }
 
     @Override
-    public void onScanFinish(Uri uri) {
-        counter++;
+    public void onScanFinish(ArrayList<Uri> listUri) {
+        Intent intent = new Intent();
+        intent.putExtra(IMAGES, listUri);
+        setResult(RESULT_OK, intent);
+        finish();
 
 //        Log.d("#URI onScanFinish :", "" + uri);
 //        if (counter < imageList.size()) {

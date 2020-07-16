@@ -43,6 +43,8 @@ import com.docscan.st.manager.NotificationObserver;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.ItemOffsetDecoration;
 
+import static com.docscan.st.utils.AppUtility.CAMERA_REQUEST_CODE;
+
 public class NoteGroupActivity extends BaseActivity implements NotificationObserver, ShareDialogListener, CreatePDFListener {
 
     @BindView(R.id.noteGroup_rv)
@@ -301,7 +303,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT ||
-                requestCode == CameraActivity.CAMERA_REQUEST_CODE) {
+                requestCode == CAMERA_REQUEST_CODE) {
             if (resultCode == RESULT_OK && data != null) {
                 mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
                 if (mNoteGroup != null) {

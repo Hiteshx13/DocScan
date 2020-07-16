@@ -2,13 +2,13 @@ package com.docscan.st.db;
 
 import com.docscan.st.db.models.Note;
 import com.docscan.st.db.models.NoteGroup;
+import com.docscan.st.db.models.NoteGroup_Table;
+import com.docscan.st.db.models.Note_Table;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.sql.language.Select;
 
 import java.util.Date;
 import java.util.List;
-
-import timber.log.Timber;
 
 /**
  * Created by droidNinja on 19/04/16.
@@ -26,7 +26,7 @@ public class DBManager {
 
     public NoteGroup createNoteGroup(String noteImageName) {
         NoteGroup noteGroup = new NoteGroup();
-        noteGroup.name = "New Group";
+        noteGroup.name = "New Group " + (getAllNoteGroups().size() + 1);
         noteGroup.type = "Document";
         noteGroup.save();
 
@@ -35,14 +35,15 @@ public class DBManager {
     }
 
     public NoteGroup insertNote(NoteGroup noteGroup, String noteImageName) {
-        if (noteGroup.id > 0) {
+        if (NoteGroup.id > 0) {
             Note note = new Note();
             note.name = noteImageName;
+            note.noteId = NoteGroup.id;
             note.createdAt = new Date();
             note.associateNoteGroup(noteGroup);
             note.save();
 
-            return getNoteGroup(noteGroup.id);
+            return getNoteGroup(NoteGroup.id);
         }
         return null;
     }
@@ -52,7 +53,7 @@ public class DBManager {
         for (NoteGroup notegroup :
                 noteGroups) {
             notegroup.notes = notegroup.getNotes();
-            Timber.i("size" + notegroup.notes.size(), notegroup.notes.size());
+            //Timber.i("size" + notegroup.notes.size(), notegroup.notes.size());
         }
         return noteGroups;
     }
@@ -60,7 +61,7 @@ public class DBManager {
     public NoteGroup getNoteGroup(int id) {
         NoteGroup noteGroup = SQLite.select()
                 .from(NoteGroup.class)
-                //.where(NoteGroup_Table.id.eq(id))
+                .where(NoteGroup_Table.id.eq(id))
                 .querySingle();
         noteGroup.notes = noteGroup.getNotes();
         return noteGroup;
@@ -68,16 +69,16 @@ public class DBManager {
 
     public void deleteNoteGroup(int id) {
         SQLite.delete(Note.class)
-                // .where(Note_Table.noteGroupId.eq(id))
+                .where(Note_Table.noteGroupId.eq(id))
                 .query();
         SQLite.delete(NoteGroup.class)
-                //.where(NoteGroup_Table.id.eq(id))
+                .where(NoteGroup_Table.id.eq(id))
                 .query();
     }
 
     public void deleteNote(int id) {
         SQLite.delete(Note.class)
-                //.where(Note_Table.id.eq(id))
+                .where(Note_Table.id.eq(id))
                 .query();
 
     }

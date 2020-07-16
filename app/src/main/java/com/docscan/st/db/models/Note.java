@@ -2,6 +2,8 @@ package com.docscan.st.db.models;
 
 import android.net.Uri;
 
+import com.docscan.st.db.PDFScannerDatabase;
+import com.docscan.st.main.Const;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
 import com.raizlabs.android.dbflow.annotation.ForeignKeyAction;
@@ -18,15 +20,12 @@ import org.parceler.Transient;
 import java.io.File;
 import java.util.Date;
 
-import com.docscan.st.db.PDFScannerDatabase;
-import com.docscan.st.main.Const;
-
 /**
  * Created by droidNinja on 19/04/16.
  */
 @Table(database = PDFScannerDatabase.class)
-@Parcel(analyze={Note.class})
-public class Note extends BaseModel{
+@Parcel(analyze = {Note.class})
+public class Note extends BaseModel {
 
     @Column
     @PrimaryKey(autoincrement = true)
@@ -34,6 +33,9 @@ public class Note extends BaseModel{
 
     @Column
     public String name;
+
+    @Column
+    public int noteId;
 
     @Column
     public Date createdAt;
@@ -47,8 +49,7 @@ public class Note extends BaseModel{
         noteGroupForeignKeyContainer = FlowManager.getContainerAdapter(NoteGroup.class).toForeignKeyContainer(noteGroup);
     }
 
-    public Uri getImagePath()
-    {
+    public Uri getImagePath() {
         Uri uri = Uri.fromFile(new File(Const.FOLDERS.CROP_IMAGE_PATH + File.separator + name));
         return uri;
     }

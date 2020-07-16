@@ -3,37 +3,43 @@ package com.docscan.st.activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.docscan.st.activity.adapters.MultiSelector;
-
-import org.parceler.Parcels;
-
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import com.docscan.st.R;
-
+import com.docscan.st.activity.adapters.MultiSelector;
 import com.docscan.st.activity.adapters.NoteGroupAdapter;
 import com.docscan.st.activity.adapters.ParcelableSparseBooleanArray;
 import com.docscan.st.activity.callbacks.HomeView;
+import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.NoteGroup;
 import com.docscan.st.main.Const;
 import com.docscan.st.presenters.HomePresenter;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.ItemOffsetDecoration;
+
+import org.parceler.Parcels;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
+import static com.docscan.st.activity.CameraActivity.IMAGES;
+import static com.docscan.st.utils.AppUtility.CAMERA_REQUEST_CODE;
 
 public class HomeActivity extends BaseActivity implements HomeView {
 
@@ -42,7 +48,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
     RecyclerView noteGroupRecyclerView;
 
     @BindView(R.id.emptyView)
-    ImageView emptyView;
+    TextView emptyView;
 
     @BindView(R.id.progress)
     ProgressBar progressBar;
@@ -52,6 +58,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
     public static final String IS_IN_ACTION_MODE = "IS_IN_ACTION_MODE";
     private MultiSelector multiSelector;
     private ActionMode actionMode;
+    private NoteGroup mNoteGroup;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -256,6 +263,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     public void onCameraClicked(View view) {
+        mNoteGroup = null;
         int[] startingLocation = new int[2];
         view.getLocationOnScreen(startingLocation);
         startingLocation[0] += view.getWidth() / 2;
@@ -314,24 +322,43 @@ public class HomeActivity extends BaseActivity implements HomeView {
         AppUtility.rateOnPlayStore(this);
     }
 
+    void addNoteToDB(String name) {
+        if (mNoteGroup != null) {
+            mNoteGroup = DBManager.getInstance().insertNote(mNoteGroup, name);
+        } else {
+            mNoteGroup = DBManager.getInstance().createNoteGroup(name);
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
+            ArrayList<Uri> list = (ArrayList<Uri>) imageReturnedIntent.getSerializableExtra(IMAGES);
+
+            for (int i = 0; i < list.size(); i++) {
+                File file = new File(list.get(i).getPath());
+                addNoteToDB(file.getName());
+            }
+            init();
+        }
     }
 
     @Override
     public void onBackPressed() {
-        AppUtility.askAlertDialog(this, "Don't forget to rate us.", "Press YES to rate or NO to exit", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        AppUtility.rateOnPlayStore(HomeActivity.this);
-                    }
-                },
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finishAffinity();
-                    }
-                });
+//        AppUtility.askAlertDialog(this, "Don't forget to rate us.", "Press YES to rate or NO to exit", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        AppUtility.rateOnPlayStore(HomeActivity.this);
+//                    }
+//                },
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//
+//                    }
+//                });
+        finishAffinity();
     }
+
 }

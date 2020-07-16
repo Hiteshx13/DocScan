@@ -30,15 +30,16 @@ class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
     public void onDoneClicked(int pos) {
         ArrayList<Map<Integer, PointF>> listPoints = new ArrayList<>();
         ArrayList<Bitmap> listBitmap = new ArrayList<>();
+        ArrayList<String> listUri = new ArrayList<>();
         for (int i = 0; i < listFragments.size(); i++) {
             //  points.add();
-            ScanFragment fragment = listFragments.get(0);
+            ScanFragment fragment = listFragments.get(i);
             listPoints.add(fragment.getPoints());
             listBitmap.add(fragment.getOriginalBitmap());
-
+            listUri.add(fragment.getOriginalPath());
         }
         ScanFragment fragment = listFragments.get(0);
-        fragment.performOnClick(listBitmap,listPoints);
+        fragment.performOnClick(listBitmap, listPoints,listUri);
     }
 
     @Override

@@ -308,7 +308,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         if (isBatch && captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
             captureMode = CameraConst.CAPTURE_BATCH_MODE;
             previewCount = 0;
-            clearListener.onClear();
+            clearListener.onClear(isBatch);
         } else if (!isBatch) {
             captureMode = CameraConst.CAPTURE_SINGLE_MODE;
             hidePreviewImage();
@@ -832,7 +832,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
             mProgress.setVisibility(View.GONE);
     }
 
-    public void setPreviewImage(String path, final NoteGroup noteGroup) {
+    public void setPreviewImage(String path) {
         if (previewImageView == null || captureMode == CameraConst.CAPTURE_SINGLE_MODE || getActivity() == null)
             return;
 
@@ -847,7 +847,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
                 previewImageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        openNoteGroupActivity(noteGroup);
+                        batchOkListener.onComplete();
                     }
                 });
                 badgeView.setBadgeMargin(-5);
@@ -873,13 +873,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         ImageManager.i.loadPhoto(path, metrics.widthPixels, metrics.heightPixels, loadingTarget);
     }
 
-    private void openNoteGroupActivity(NoteGroup noteGroup) {
 
-        batchOkListener.onComplete();
-//        Intent intent = new Intent(getActivity(), NoteGroupActivity.class);
-//        intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(noteGroup));
-//        startActivity(intent);
-    }
 
     private void hidePreviewImage() {
         previewImageView.setVisibility(View.GONE);
