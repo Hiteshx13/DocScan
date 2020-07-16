@@ -10,7 +10,7 @@
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/controls_layout"/>
+        android:layout_above="@+id/controls_layout" />
 
     <RelativeLayout
         android:id="@+id/controls_layout"
@@ -33,6 +33,15 @@
             android:src="@drawable/camera"
             android:tint="@color/white"
             app:layout_anchorGravity="bottom|center" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivGallery"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/capture"
+            android:src="@drawable/ic_gallery" />
+
 
         <ImageView
             android:id="@+id/preview_iv"

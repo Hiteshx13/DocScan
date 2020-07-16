@@ -44,7 +44,7 @@ import com.docscan.st.db.models.NoteGroup;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
-    private static final int SELECT_PHOTO = 0x201;
+    public static final int SELECT_PHOTO = 0x201;
     private NoteGroup noteGroup;
 
     @Override

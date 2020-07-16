@@ -2,12 +2,14 @@ package com.docscan.st.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
@@ -19,6 +21,7 @@ import com.docscan.st.camera.fragments.CameraFragment;
 import com.docscan.st.db.models.NoteGroup;
 import com.docscan.st.interfaces.CameraParamsChangedListener;
 import com.docscan.st.interfaces.KeyEventsListener;
+import com.docscan.st.interfaces.OnGalllerySelectedCallback;
 import com.docscan.st.interfaces.PhotoSavedListener;
 import com.docscan.st.interfaces.PhotoTakenCallback;
 import com.docscan.st.interfaces.RawPhotoTakenCallback;
@@ -35,6 +38,7 @@ import com.scanlibrary.ScanActivity;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -160,6 +164,11 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
             @Override
             public void onClear(boolean isBatch) {
                 imageList.clear();
+            }
+        }, new OnGalllerySelectedCallback() {
+            @Override
+            public void onGallerySelected() {
+                selectImageFromGallery(null);
             }
         });
         fragment.setParamsChangedListener(this);
@@ -323,6 +332,9 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
                     String path = data.getStringExtra(BaseScannerActivity.EXTRAS.PATH);
                     PhotoUtil.deletePhoto(path);
                     break;
+                case RESULT_CANCELED:
+                    imageList.clear();
+                    break;
                 case RESULT_OK:
                     //mNoteGroup = null;
                     ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
@@ -344,6 +356,23 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
                     finish();
                     // }
                     break;
+                case SELECT_PHOTO:
+                   // if(resultCode == RESULT_OK){
+                        Uri selectedImage = data.getData();
+//                        String[] filePathColumn = { MediaStore.Images.Media.DATA };
+//
+//                        Cursor cursor = getContentResolver().query(selectedImage,
+//                                filePathColumn, null, null, null);
+//                        cursor.moveToFirst();
+//
+//                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+//                        String picturePath = cursor.getString(columnIndex);
+//
+//                        File file = new File(picturePath);
+
+                        //cursor.close();
+                       // openScannerActivity(picturePath, file.getName(), noteGroup);
+                    //}
 
             }
         }

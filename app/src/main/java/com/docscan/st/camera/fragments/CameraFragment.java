@@ -56,6 +56,7 @@ import com.docscan.st.fragment.BaseFragment;
 import com.docscan.st.interfaces.CameraParamsChangedListener;
 import com.docscan.st.interfaces.FocusCallback;
 import com.docscan.st.interfaces.KeyEventsListener;
+import com.docscan.st.interfaces.OnGalllerySelectedCallback;
 import com.docscan.st.interfaces.PhotoSavedListener;
 import com.docscan.st.interfaces.PhotoTakenCallback;
 import com.docscan.st.interfaces.RawPhotoTakenCallback;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import butterknife.BindView;
 import timber.log.Timber;
 
 public class CameraFragment extends BaseFragment implements PhotoSavedListener, KeyEventsListener, CameraParamsChangedListener, FocusCallback {
@@ -133,23 +135,17 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     private ProgressDialog progressDialog;
     private List<Camera.Size> mSupportedPreviewSizes;
     private OnBatchCompleteListener batchOkListener;
+    private OnGalllerySelectedCallback onGalleryCallback;
     private OnClearListener clearListener;
 
-
-   /* public static CameraFragment newInstance(int layoutId, PhotoTakenCallback callback, Bundle params, OnBatchCompleteListener  batchOkListener) {
-        CameraFragment fragment = new CameraFragment();
-        fragment.layoutId = layoutId;
-        fragment.batchOkListener = batchOkListener;
-        fragment.callback = callback;
-        fragment.setArguments(params);
+    @BindView(R.id.ivGallery)
+    AppCompatImageView ivGallery;
 
 
-        return fragment;
-    }*/
-
-    public static CameraFragment newInstance(PhotoTakenCallback callback, Bundle params, OnBatchCompleteListener batchOkListener, OnClearListener clearListener) {
+    public static CameraFragment newInstance(PhotoTakenCallback callback, Bundle params, OnBatchCompleteListener batchOkListener, OnClearListener clearListener, OnGalllerySelectedCallback onGalleryCallback) {
         CameraFragment fragment = new CameraFragment();
         fragment.callback = callback;
+        fragment.onGalleryCallback = onGalleryCallback;
         fragment.layoutId = R.layout.fragment_camera;
         fragment.batchOkListener = batchOkListener;
         fragment.clearListener = clearListener;
@@ -248,6 +244,13 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         ivCaptureBatch = view.findViewById(R.id.ivCaptureBatch);
 
         setCaptureMode(captureMode);
+
+        ivGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onGalleryCallback.onGallerySelected();
+            }
+        });
         llCaptureSingle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -872,7 +875,6 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         ImageManager.i.loadPhoto(path, metrics.widthPixels, metrics.heightPixels, loadingTarget);
     }
-
 
 
     private void hidePreviewImage() {
