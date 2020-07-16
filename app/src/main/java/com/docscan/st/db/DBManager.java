@@ -25,8 +25,17 @@ public class DBManager {
     }
 
     public NoteGroup createNoteGroup(String noteImageName) {
+
+        List<NoteGroup> listAll = getAllNoteGroups();
         NoteGroup noteGroup = new NoteGroup();
-        noteGroup.name = "New Group " + (getAllNoteGroups().size() + 1);
+        int noteID = 1;
+        if (listAll.size() > 0) {
+            NoteGroup noteLast = listAll.get(listAll.size() - 1);
+            noteID = noteLast.id + 1;
+        }
+        //NoteGroup noteLast=
+        noteGroup.id = noteID;
+        noteGroup.name = "New Group " + noteID;
         noteGroup.type = "Document";
         noteGroup.save();
 
@@ -35,15 +44,15 @@ public class DBManager {
     }
 
     public NoteGroup insertNote(NoteGroup noteGroup, String noteImageName) {
-        if (NoteGroup.id > 0) {
+        if (noteGroup.id > 0) {
             Note note = new Note();
             note.name = noteImageName;
-            note.noteId = NoteGroup.id;
+            note.noteId = noteGroup.getID();
             note.createdAt = new Date();
             note.associateNoteGroup(noteGroup);
             note.save();
 
-            return getNoteGroup(NoteGroup.id);
+            return getNoteGroup(noteGroup.getID());
         }
         return null;
     }
@@ -52,7 +61,7 @@ public class DBManager {
         List<NoteGroup> noteGroups = new Select().from(NoteGroup.class).queryList();
         for (NoteGroup notegroup :
                 noteGroups) {
-            notegroup.notes = notegroup.getNotes();
+            notegroup.notes = notegroup.getNotes(notegroup.getID());
             //Timber.i("size" + notegroup.notes.size(), notegroup.notes.size());
         }
         return noteGroups;

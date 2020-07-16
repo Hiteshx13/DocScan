@@ -23,8 +23,12 @@ import com.docscan.st.db.PDFScannerDatabase;
 public class NoteGroup extends BaseModel {
 
     @Column
-    @PrimaryKey(autoincrement = true)
-    public static int id;
+
+    public static int z;
+
+    @Column
+    @PrimaryKey()
+    public int id;
 
     @Column
     public String name; //this is image name
@@ -40,12 +44,28 @@ public class NoteGroup extends BaseModel {
 
     public List<Note> notes;
 
+    public int getID(){
+        return id;
+    }
+    public void setID(int id){
+        this.id=id;
+    }
     @OneToMany(methods = {OneToMany.Method.SAVE, OneToMany.Method.DELETE}, variableName = "notes")
     public List<Note> getNotes() {
         if (notes == null || notes.isEmpty()) {
             notes = SQLite.select()
                     .from(Note.class)
-                    .where(Note_Table.noteId.eq(id))
+                    //.where(Note_Table.noteId.eq(id))
+                    .queryList();
+        }
+        return notes;
+    }
+    @OneToMany(methods = {OneToMany.Method.SAVE, OneToMany.Method.DELETE}, variableName = "notes")
+    public List<Note> getNotes(int noteGroupid) {
+        if (notes == null || notes.isEmpty()) {
+            notes = SQLite.select()
+                    .from(Note.class)
+                    .where(Note_Table.noteId.eq(noteGroupid))
                     .queryList();
         }
         return notes;
