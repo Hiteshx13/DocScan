@@ -2,6 +2,7 @@ package com.docscan.st.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,22 +15,9 @@ import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.docscan.st.R;
 import com.docscan.st.activity.adapters.MultiSelector;
 import com.docscan.st.activity.adapters.NoteAdapter;
-
-import org.parceler.Parcels;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import vi.imagestopdf.CreatePDFListener;
-import vi.imagestopdf.PDFEngine;
-import com.docscan.st.R;
-
 import com.docscan.st.activity.adapters.ParcelableSparseBooleanArray;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.Note;
@@ -43,7 +31,21 @@ import com.docscan.st.manager.NotificationObserver;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.ItemOffsetDecoration;
 
+import org.parceler.Parcels;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import vi.imagestopdf.CreatePDFListener;
+import vi.imagestopdf.PDFEngine;
+
+import static com.docscan.st.activity.CameraActivity.IMAGES;
 import static com.docscan.st.utils.AppUtility.CAMERA_REQUEST_CODE;
+import static com.docscan.st.utils.AppUtility.INTENT_DATA_NOTEGROUP_ID;
 
 public class NoteGroupActivity extends BaseActivity implements NotificationObserver, ShareDialogListener, CreatePDFListener {
 
@@ -86,10 +88,10 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         mNoteGroup = Parcels.unwrap(getIntent().getParcelableExtra(NoteGroup.class.getSimpleName()));
 
         multiSelector = new MultiSelector(noteRecyclerView);
-        if(mNoteGroup!=null && mNoteGroup.notes.size()>0) {
+        if (mNoteGroup != null && mNoteGroup.notes.size() > 0) {
             setUpNoteList(mNoteGroup.notes);
             setToolbar(mNoteGroup);
-        }else
+        } else
             finish();
     }
 
@@ -142,16 +144,15 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 //            multiSelector.clearAll();
 
             NoteAdapter adapter = (NoteAdapter) noteRecyclerView.getAdapter();
-            if(adapter!=null)
+            if (adapter != null)
                 adapter.setNormalChoiceMode();
         }
     };
 
     private void onShareOptionClicked() {
         NoteAdapter adapter = (NoteAdapter) noteRecyclerView.getAdapter();
-        if(adapter!=null)
-        {
-            AppUtility.shareDocuments(this,adapter.getCheckedNotes());
+        if (adapter != null) {
+            AppUtility.shareDocuments(this, adapter.getCheckedNotes());
         }
     }
 
@@ -165,7 +166,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                     adapter.deleteItems(checkItems);
                 }
 
-                if(mNoteGroup.getNotes().size()==0) {
+                if (mNoteGroup.getNotes().size() == 0) {
                     DBManager.getInstance().deleteNoteGroup(mNoteGroup.id);
                     finish();
                 }
@@ -203,8 +204,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                 if (isMultiSelectionEnabled()) {
                     multiSelector.checkView(view, position);
                     updateActionModeTitle();
-                }
-                else
+                } else
                     openPreviewActivity(view, mNoteGroup, position);
             }
 
@@ -248,8 +248,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     @Override
     public void update(Observable observable, Object data) {
         NotificationModel notificationModel = (NotificationModel) data;
-        switch (notificationModel.notificationName)
-        {
+        switch (notificationModel.notificationName) {
             case Const.NotificationConst.DELETE_DOCUMENT:
                 onDeleteDocument(notificationModel);
                 break;
@@ -258,11 +257,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     private void onDeleteDocument(NotificationModel notificationModel) {
         Note note = (Note) notificationModel.request;
-        if(note!=null)
-        {
+        if (note != null) {
             NoteAdapter adapter = (NoteAdapter) noteRecyclerView.getAdapter();
-            if(adapter!=null)
-            {
+            if (adapter != null) {
                 adapter.deleteItem(note);
             }
         }
@@ -272,7 +269,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         int[] startingLocation = new int[2];
         view.getLocationOnScreen(startingLocation);
         startingLocation[0] += view.getWidth() / 2;
-        CameraActivity.startCameraFromLocation(startingLocation, this, mNoteGroup);
+        CameraActivity.startCameraFromLocation(startingLocation, this, mNoteGroup.id);
         overridePendingTransition(0, 0);
     }
 
@@ -285,50 +282,63 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     public void onGeneratePDFClicked(MenuItem item) {
         ArrayList<File> files = getFilesFromNoteGroup();
-        if(mNoteGroup.pdfPath!=null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName()))
-        {
+        if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
             PDFEngine.getInstance().openPDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
-        }
-        else {
+        } else {
             PDFEngine.getInstance().createPDF(this, files, this);
         }
     }
 
     public void onImportGalleryClicked(MenuItem item) {
-       selectImageFromGallery(mNoteGroup);
+        selectImageFromGallery(mNoteGroup);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT ||
+        if (requestCode == BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT ||
                 requestCode == CAMERA_REQUEST_CODE) {
             if (resultCode == RESULT_OK && data != null) {
-                mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
+
+                int noteGroupID = data.getIntExtra(INTENT_DATA_NOTEGROUP_ID, 0);
+                if (noteGroupID != 0) {
+                    mNoteGroup = DBManager.getInstance().getNoteGroup(noteGroupID);//Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
+                }
+
                 if (mNoteGroup != null) {
+                    ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
+                    for (int i = 0; i < list.size(); i++) {
+                        File file = new File(list.get(i).getPath());
+                        addNoteToDB(file.getName());
+                    }
                     updateView(mNoteGroup);
                 }
             }
         }
     }
 
+    void addNoteToDB(String name) {
+        if (mNoteGroup != null) {
+            mNoteGroup = DBManager.getInstance().insertNote(mNoteGroup, name);
+        } else {
+            mNoteGroup = DBManager.getInstance().createNoteGroup(name);
+        }
+    }
+
     private void updateView(NoteGroup mNoteGroup) {
         NoteAdapter noteAdapter = (NoteAdapter) noteRecyclerView.getAdapter();
-        if(noteAdapter!=null)
-        {
+        if (noteAdapter != null) {
             noteAdapter.setNotes(mNoteGroup.notes);
             noteAdapter.notifyDataSetChanged();
         }
     }
 
-    private ArrayList<File> getFilesFromNoteGroup()
-    {
+    private ArrayList<File> getFilesFromNoteGroup() {
         ArrayList<File> files = new ArrayList<>();
-        for(int index=0;index<mNoteGroup.getNotes().size();index++)
-        {
+        for (int index = 0; index < mNoteGroup.getNotes().size(); index++) {
             File file = new File(mNoteGroup.getNotes().get(index).getImagePath().getPath());
-            if(file.exists())
+            if (file.exists())
                 files.add(file);
         }
         return files;
@@ -342,11 +352,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     @Override
     public void sharePDF() {
         ArrayList<File> files = getFilesFromNoteGroup();
-        if(mNoteGroup.pdfPath!=null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName()))
-        {
+        if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
             PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
-        }
-        else {
+        } else {
             isShareClicked = true;
             PDFEngine.getInstance().createPDF(this, files, this);
         }
@@ -359,10 +367,10 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     @Override
     public void onPDFGenerated(File pdfFile, int numOfImages) {
-        if(pdfFile != null) {
+        if (pdfFile != null) {
             this.mNoteGroup.pdfPath = pdfFile.getPath();
             if (pdfFile.exists()) {
-                if(!isShareClicked)
+                if (!isShareClicked)
                     PDFEngine.getInstance().openPDF(NoteGroupActivity.this, pdfFile);
                 else
                     PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, pdfFile);

@@ -5,9 +5,7 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.PointF;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,12 +15,10 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.parceler.Parcels;
-
 import java.util.ArrayList;
-import java.util.Map;
 
 import static com.scanlibrary.Utils.IMAGES;
+import static com.scanlibrary.Utils.INTENT_DATA_NOTEGROUP_ID;
 
 /**
  * Created by jhansi on 28/03/15.
@@ -35,18 +31,22 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
     FloatingActionButton btnDone;
     ArrayList<ScanFragment> listFragments;
     int counter = 0;
+    int mNoteGroupID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan_layout);
         btnDone = findViewById(R.id.btnDone);
+        mNoteGroupID = getIntent().getIntExtra(INTENT_DATA_NOTEGROUP_ID, 0);
+
         init();
     }
 
-    public static Intent getActivityIntent(Context context, ArrayList<String> noteGroup) {
+    public static Intent getActivityIntent(Context context, ArrayList<String> listNote, int mNoteGroupID) {
         Intent intent = new Intent(context, ScanActivity.class);
-        intent.putExtra(IMAGES, noteGroup);
+        intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroupID);
+        intent.putExtra(IMAGES, listNote);
         return intent;
     }
 
@@ -126,6 +126,7 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
     public void onScanFinish(ArrayList<Uri> listUri) {
         Intent intent = new Intent();
         intent.putExtra(IMAGES, listUri);
+        intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroupID);
         setResult(RESULT_OK, intent);
         finish();
 
@@ -146,8 +147,6 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
 //        fragmentTransaction.addToBackStack(ResultFragment.class.toString());
 //        fragmentTransaction.commit();
     }
-
-
 
 
     @Override

@@ -267,7 +267,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
         int[] startingLocation = new int[2];
         view.getLocationOnScreen(startingLocation);
         startingLocation[0] += view.getWidth() / 2;
-        CameraActivity.startCameraFromLocation(startingLocation, this, null);
+        CameraActivity.startCameraFromLocation(startingLocation, this, 0);
         overridePendingTransition(0, 0);
     }
 
@@ -335,7 +335,6 @@ public class HomeActivity extends BaseActivity implements HomeView {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
         if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
             ArrayList<Uri> list = (ArrayList<Uri>) imageReturnedIntent.getSerializableExtra(IMAGES);
-
             for (int i = 0; i < list.size(); i++) {
                 File file = new File(list.get(i).getPath());
                 addNoteToDB(file.getName());

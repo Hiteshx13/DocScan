@@ -6,7 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
         <item name="android:actionModeBackground">@color/colorPrimary</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
@@ -16,7 +16,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
         <item name="android:actionModeBackground">@color/colorPrimary</item>
         <item name="windowActionModeOverlay">true</item>
     </style>
@@ -87,7 +87,7 @@
     </style>
 
     <style name="TextView.CameraSettingsItemTitle" parent="TextView.SettingsItemTitle">
-        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textColor">@color/colorPrimary</item>
     </style>
 
     <!-- LinearLayout-->

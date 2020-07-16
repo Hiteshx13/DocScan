@@ -16,7 +16,6 @@ import android.view.ViewTreeObserver;
 
 import com.docscan.st.R;
 import com.docscan.st.camera.fragments.CameraFragment;
-import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.NoteGroup;
 import com.docscan.st.interfaces.CameraParamsChangedListener;
 import com.docscan.st.interfaces.KeyEventsListener;
@@ -36,9 +35,6 @@ import com.scanlibrary.ScanActivity;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import org.parceler.Parcels;
-
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +45,7 @@ import butterknife.ButterKnife;
 import timber.log.Timber;
 
 import static com.docscan.st.utils.AppUtility.CAMERA_REQUEST_CODE;
+import static com.docscan.st.utils.AppUtility.INTENT_DATA_NOTEGROUP_ID;
 
 public class CameraActivity extends BaseActivity implements RevealBackgroundView.OnStateChangeListener, PhotoTakenCallback, PhotoSavedListener, RawPhotoTakenCallback, CameraParamsChangedListener {
 
@@ -84,17 +81,16 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
     @BindView(R.id.fragment_content)
     View fragmentView;
+    private int mNoteGroupID;
 
     public static void
-    startCameraFromLocation(int[] startingLocation, Activity startingActivity, NoteGroup mNoteGroup) {
+    startCameraFromLocation(int[] startingLocation, Activity startingActivity, int mNoteGroup) {
         Intent intent = new Intent(startingActivity, CameraActivity.class);
         intent.putExtra(ARG_REVEAL_START_LOCATION, startingLocation);
         intent.putExtra(PATH, Const.FOLDERS.PATH);
         intent.putExtra(CAPTURE_MODE, CameraConst.CAPTURE_SINGLE_MODE);
         intent.putExtra(USE_FRONT_CAMERA, false);
-//        if (mNoteGroup != null)
-//            intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
-
+        intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroup);
         startingActivity.startActivityForResult(intent, CAMERA_REQUEST_CODE);
     }
 
@@ -127,7 +123,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
             SharedPrefManager.i.setUseFrontCamera(useFrontCamera);
         }
 
-        //  mNoteGroup = Parcels.unwrap(getIntent().getParcelableExtra(NoteGroup.class.getSimpleName()));
+        mNoteGroupID = getIntent().getIntExtra(INTENT_DATA_NOTEGROUP_ID, 0);
 
         init();
     }
@@ -246,7 +242,6 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     }
 
 
-
     @Override
     public void onNoteGroupSaved(NoteGroup noteGroup) {
 
@@ -303,9 +298,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
     private void openPreview(ArrayList<String> list) {
 
-        Intent intent = ScanActivity.getActivityIntent(this, list);
-//        if (mNoteGroup != null)
-//            intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
+        Intent intent = ScanActivity.getActivityIntent(this, list, mNoteGroupID);
         startActivityForResult(intent, BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT);
         overridePendingTransition(R.anim.slide_left_in, R.anim.slide_left_out);
         //finish();
@@ -342,12 +335,11 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 //
 
 
-
 //                    mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
                     // if (mNoteGroup != null) {
                     Intent intent = new Intent();
                     intent.putExtra(IMAGES, list);
-//                    intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(mNoteGroup));
+                    intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroupID);
                     setResult(RESULT_OK, intent);
                     finish();
                     // }

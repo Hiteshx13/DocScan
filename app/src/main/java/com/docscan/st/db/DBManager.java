@@ -72,7 +72,7 @@ public class DBManager {
                 .from(NoteGroup.class)
                 .where(NoteGroup_Table.id.eq(id))
                 .querySingle();
-        noteGroup.notes = noteGroup.getNotes();
+        noteGroup.notes = noteGroup.getNotes(id);
         return noteGroup;
     }
 

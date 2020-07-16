@@ -19,6 +19,7 @@ import java.util.Date;
  */
 public class Utils {
     static String IMAGES = "image_list";
+    public static final String INTENT_DATA_NOTEGROUP_ID = "intent_data_notegroup_id";
 
     private Utils() {
 
