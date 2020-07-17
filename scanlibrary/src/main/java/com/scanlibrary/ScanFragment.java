@@ -107,6 +107,9 @@ public class ScanFragment extends Fragment {
 
     private Bitmap getBitmap() {
         Uri uri = getUri();
+        if(imagePath.startsWith("content")){
+            uri=Uri.parse(imagePath);
+        }
         try {
             Bitmap bitmap = Utils.getBitmap(getActivity(), uri);
 //            getActivity().getContentResolver().delete(uri, null, null);
@@ -125,6 +128,7 @@ public class ScanFragment extends Fragment {
     private void setBitmap(Bitmap original) {
         Bitmap scaledBitmap = scaledBitmap(original, sourceFrame.getWidth(), sourceFrame.getHeight());
         sourceImageView.setImageBitmap(scaledBitmap);
+
         Bitmap tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
         Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
         polygonView.setPoints(pointFs);

@@ -35,16 +35,17 @@ import android.view.inputmethod.InputMethodManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.docscan.st.R;
+import com.docscan.st.db.models.NoteGroup;
+
 import org.parceler.Parcels;
 
 import java.io.File;
 
-import com.docscan.st.R;
-import com.docscan.st.db.models.NoteGroup;
-
 public abstract class BaseActivity extends AppCompatActivity {
 
     public static final int SELECT_PHOTO = 0x201;
+    public static final int SELECT_PHOTO_GALLERY = 111;
     private NoteGroup noteGroup;
 
     @Override
@@ -94,45 +95,44 @@ public abstract class BaseActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(menuItem);
     }
 
-    protected void selectImageFromGallery(NoteGroup noteGroup)
-    {
-        this.noteGroup = noteGroup;
-        Intent photoPickerIntent = new Intent(
-                Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
+    protected void selectImageFromGallery() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PHOTO_GALLERY);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
-            case SELECT_PHOTO:
-                if(resultCode == RESULT_OK){
-                    Uri selectedImage = data.getData();
-                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-                    Cursor cursor = getContentResolver().query(selectedImage,
-                            filePathColumn, null, null, null);
-                    cursor.moveToFirst();
-
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    String picturePath = cursor.getString(columnIndex);
-
-                    File file = new File(picturePath);
-
-                    cursor.close();
-                    openScannerActivity(picturePath, file.getName(), noteGroup);
-                }
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+////        switch (requestCode) {
+////            case SELECT_PHOTO:
+////                if (resultCode == RESULT_OK) {
+////                    Uri selectedImage = data.getData();
+////                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
+////
+////                    Cursor cursor = getContentResolver().query(selectedImage,
+////                            filePathColumn, null, null, null);
+////                    cursor.moveToFirst();
+////
+////                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+////                    String picturePath = cursor.getString(columnIndex);
+////
+////                    File file = new File(picturePath);
+////
+////                    cursor.close();
+////                    openScannerActivity(picturePath, file.getName(), noteGroup);
+////                }
+////        }
+//    }
 
     private void openScannerActivity(String picturePath, String name, NoteGroup noteGroup) {
         Intent intent = new Intent(this, ScannerActivity.class);
         intent.putExtra(BaseScannerActivity.EXTRAS.PATH, picturePath);
         intent.putExtra(BaseScannerActivity.EXTRAS.NAME, name);
         intent.putExtra(BaseScannerActivity.EXTRAS.FROM_CAMERA, false);
-        if(noteGroup!=null)
+        if (noteGroup != null)
             intent.putExtra(NoteGroup.class.getSimpleName(), Parcels.wrap(noteGroup));
 
         startActivityForResult(intent, BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT);

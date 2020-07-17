@@ -290,7 +290,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onImportGalleryClicked(MenuItem item) {
-        selectImageFromGallery(mNoteGroup);
+        selectImageFromGallery();
     }
 
     @Override

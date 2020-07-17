@@ -315,7 +315,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     public void onImportGalleryClicked(MenuItem item) {
-        selectImageFromGallery(null);
+        selectImageFromGallery();
     }
 
     public void onRateUsClicked(MenuItem item) {

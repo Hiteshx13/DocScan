@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import timber.log.Timber;
 
 public class CameraFragment extends BaseFragment implements PhotoSavedListener, KeyEventsListener, CameraParamsChangedListener, FocusCallback {
@@ -138,7 +139,6 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     private OnGalllerySelectedCallback onGalleryCallback;
     private OnClearListener clearListener;
 
-    @BindView(R.id.ivGallery)
     AppCompatImageView ivGallery;
 
 
@@ -158,7 +158,9 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         boolean useFrontCamera = getArguments().getBoolean(FRONT_CAMERA, false);
+
         camera = getCameraInstance(useFrontCamera);
+
         if (camera == null) {
             return;
         }
@@ -203,11 +205,11 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (camera == null) {
+          if (camera == null) {
             return inflater.inflate(R.layout.fragment_no_camera, container, false);
         }
         View view = inflater.inflate(layoutId, container, false);
-
+        ivGallery=view.findViewById(R.id.ivGallery);
         try {
             previewContainer = view.findViewById(R.id.camera_preview);
         } catch (NullPointerException e) {

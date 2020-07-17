@@ -1,6 +1,7 @@
 package com.docscan.st.activity;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -38,7 +40,6 @@ import com.scanlibrary.ScanActivity;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
         }, new OnGalllerySelectedCallback() {
             @Override
             public void onGallerySelected() {
-                selectImageFromGallery(null);
+                selectImageFromGallery();
             }
         });
         fragment.setParamsChangedListener(this);
@@ -256,55 +257,6 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
     }
 
-    private void saveTransformedImage(final String path, final String name) {
-
-        Target loadingTarget = new Target() {
-
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-
-                /*new TransformAndSaveTask(mNoteGroup, name, bitmap, new PhotoSavedListener() {
-                    String croppedPath = "";
-
-                    @Override
-                    public void photoSaved(String path, String name) {
-//                        Toast.makeText(CameraActivity.this, "Photo " + name + " saved1", Toast.LENGTH_SHORT).show();
-                        if (captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
-                            ArrayList<String> list = new ArrayList<>();
-                            list.add(path);
-                            openPreview(list);
-                        }
-                        croppedPath = path;
-                    }
-
-                    @Override
-                    public void onNoteGroupSaved(NoteGroup noteGroup) {
-                        mNoteGroup = noteGroup;
-                        if (fragment != null)
-                            fragment.setPreviewImage(croppedPath, noteGroup);
-                    }
-                }).execute();*/
-
-            }
-
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-
-            }
-
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-            }
-
-        };
-
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        ImageManager.i.loadPhoto(path, metrics.widthPixels, metrics.heightPixels, loadingTarget);
-    }
-
     private void openPreview(ArrayList<String> list) {
 
         Intent intent = ScanActivity.getActivityIntent(this, list, mNoteGroupID);
@@ -326,18 +278,24 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT) {
-            switch (resultCode) {
-                case BaseScannerActivity.EXTRAS.RESULT_DELETED:
-                    String path = data.getStringExtra(BaseScannerActivity.EXTRAS.PATH);
-                    PhotoUtil.deletePhoto(path);
-                    break;
-                case RESULT_CANCELED:
-                    imageList.clear();
-                    break;
-                case RESULT_OK:
-                    //mNoteGroup = null;
-                    ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
+
+        //if (requestCode == BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT) {
+        switch (requestCode) {
+            case BaseScannerActivity.EXTRAS.REQUEST_PHOTO_EDIT:
+                switch (resultCode) {
+                    case BaseScannerActivity.EXTRAS.RESULT_DELETED:
+                        String path = data.getStringExtra(BaseScannerActivity.EXTRAS.PATH);
+                        PhotoUtil.deletePhoto(path);
+                        break;
+                    case RESULT_CANCELED:
+                        if (captureMode == CameraConst.CAPTURE_SINGLE_MODE) {
+                            imageList.clear();
+                        }
+
+                        break;
+                    case RESULT_OK:
+                        //mNoteGroup = null;
+                        ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
 
 //                    for (int i = 0; i < list.size(); i++) {
 //                        File file = new File(list.get(i).getPath());
@@ -348,33 +306,68 @@ public class CameraActivity extends BaseActivity implements RevealBackgroundView
 
 
 //                    mNoteGroup = Parcels.unwrap(data.getParcelableExtra(NoteGroup.class.getSimpleName()));
-                    // if (mNoteGroup != null) {
-                    Intent intent = new Intent();
-                    intent.putExtra(IMAGES, list);
-                    intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroupID);
-                    setResult(RESULT_OK, intent);
-                    finish();
-                    // }
-                    break;
-                case SELECT_PHOTO:
-                   // if(resultCode == RESULT_OK){
-                        Uri selectedImage = data.getData();
-//                        String[] filePathColumn = { MediaStore.Images.Media.DATA };
-//
-//                        Cursor cursor = getContentResolver().query(selectedImage,
+                        // if (mNoteGroup != null) {
+                        Intent intent = new Intent();
+                        intent.putExtra(IMAGES, list);
+                        intent.putExtra(INTENT_DATA_NOTEGROUP_ID, mNoteGroupID);
+                        setResult(RESULT_OK, intent);
+                        finish();
+                        // }
+                        break;
+                }
+                break;
+            case SELECT_PHOTO_GALLERY:
+
+                String imageEncoded;
+                // List<String> imagesEncodedList;
+
+                if (resultCode == RESULT_OK) {
+                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                    //imagesEncodedList = new ArrayList<String>();
+                    if (data.getData() != null) {
+
+                        Uri mImageUri = data.getData();
+                        imageList.add(mImageUri.toString());
+                        openPreview(imageList);
+                         //Get the cursor
+//                        Cursor cursor = getContentResolver().query(mImageUri,
 //                                filePathColumn, null, null, null);
+//                        // Move to first row
 //                        cursor.moveToFirst();
 //
 //                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                        String picturePath = cursor.getString(columnIndex);
-//
-//                        File file = new File(picturePath);
+//                        imageEncoded = cursor.getString(columnIndex);
+//                        cursor.close();
 
-                        //cursor.close();
-                       // openScannerActivity(picturePath, file.getName(), noteGroup);
-                    //}
+                    } else {
+                        if (data.getClipData() != null) {
+                            ClipData mClipData = data.getClipData();
+                           // ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
+                            for (int i = 0; i < mClipData.getItemCount(); i++) {
 
-            }
+                                ClipData.Item item = mClipData.getItemAt(i);
+                                Uri uri = item.getUri();
+                                imageList.add(uri.toString());                                // Get the cursor
+                                Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
+                                // Move to first row
+                                cursor.moveToFirst();
+
+                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                                imageEncoded = cursor.getString(columnIndex);
+
+
+                                cursor.close();
+
+                            }
+                            //Log.v("LOG_TAG", "Selected Images" + mArrayUri.size());
+                            // openScannerActivity(picturePath, file.getName(), noteGroup);
+                            openPreview(imageList);
+                            break;
+                        }
+
+                    }
+                }
+                //  }
         }
     }
 
