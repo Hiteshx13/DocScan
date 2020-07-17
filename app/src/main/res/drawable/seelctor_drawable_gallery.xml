@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true">
-        <bitmap android:src="@drawable/ic_gallery" android:tint="@color/colorAccent" />
+    <item android:width="20dp" android:height="20dp" android:state_pressed="true">
+        <bitmap android:width="20dp" android:height="20dp" android:src="@drawable/ic_gallery"  android:tint="@color/colorAccent" />
     </item>
-    <item android:state_selected="true">
-        <bitmap android:src="@drawable/ic_gallery" android:tint="@color/colorAccent" />
+    <item android:width="20dp" android:height="20dp" android:state_selected="true">
+        <bitmap android:width="20dp" android:height="20dp" android:src="@drawable/ic_gallery" android:tint="@color/colorAccent" />
     </item>
-    <item android:state_focused="true">
-        <bitmap android:src="@drawable/ic_gallery" android:tint="@color/colorAccent" />
+    <item android:width="20dp" android:height="20dp" android:state_focused="true">
+        <bitmap android:width="20dp" android:height="20dp" android:src="@drawable/ic_gallery" android:tint="@color/colorAccent" />
     </item>
-    <item android:drawable="@drawable/ic_gallery" android:tint="@color/white" />
+    <item android:width="20dp" android:height="20dp" android:drawable="@drawable/ic_gallery" android:tint="@color/white" />
 </selector>

@@ -25,10 +25,7 @@ package com.docscan.st.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -39,8 +36,6 @@ import com.docscan.st.R;
 import com.docscan.st.db.models.NoteGroup;
 
 import org.parceler.Parcels;
-
-import java.io.File;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -100,7 +95,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PHOTO_GALLERY);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_GALLERY);
     }
 
 //    @Override

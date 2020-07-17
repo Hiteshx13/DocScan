@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -153,11 +154,11 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     private void showEditActionMode(boolean b) {
-        if (actionMode != null) {
-            MenuItem menuItem = actionMode.getMenu().findItem(R.id.edit);
-            if (menuItem != null)
-                menuItem.setVisible(b);
-        }
+//        if (actionMode != null) {
+//            MenuItem menuItem = actionMode.getMenu().findItem(R.id.edit);
+//            if (menuItem != null)
+//                menuItem.setVisible(b);
+//        }
     }
 
 
@@ -181,17 +182,21 @@ public class HomeActivity extends BaseActivity implements HomeView {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.delete:
-                    onDeleteOptionClicked();
-                    mode.finish();
+                    if (multiSelector.getCount() == 0) {
+                        Toast.makeText(HomeActivity.this, "Please select any document", Toast.LENGTH_SHORT).show();
+                    } else {
+                        onDeleteOptionClicked();
+                        mode.finish();
+                    }
                     return true;
-                case R.id.share:
+               /* case R.id.share:
                     onShareOptionClicked();
                     mode.finish();
-                    return true;
-                case R.id.edit:
-                    onEditOptionClicked();
-                    mode.finish();
-                    return true;
+                    return true;*/
+//                case R.id.edit:
+//                    onEditOptionClicked();
+//                    mode.finish();
+//                    return true;
 
                 default:
                     return false;
@@ -320,6 +325,11 @@ public class HomeActivity extends BaseActivity implements HomeView {
 
     public void onRateUsClicked(MenuItem item) {
         AppUtility.rateOnPlayStore(this);
+    }
+
+    public void onScanQRClicked(MenuItem item) {
+//        AppUtility.rateOnPlayStore(this);
+        Toast.makeText(this, "QR", Toast.LENGTH_SHORT).show();
     }
 
     void addNoteToDB(String name) {

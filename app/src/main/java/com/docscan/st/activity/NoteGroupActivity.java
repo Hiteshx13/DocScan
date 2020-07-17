@@ -22,7 +22,6 @@ import com.docscan.st.activity.adapters.ParcelableSparseBooleanArray;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.Note;
 import com.docscan.st.db.models.NoteGroup;
-import com.docscan.st.fragment.ShareDialogFragment;
 import com.docscan.st.fragment.ShareDialogFragment.ShareDialogListener;
 import com.docscan.st.main.Const;
 import com.docscan.st.manager.NotificationManager;
@@ -127,7 +126,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                     onDeleteOptionClicked();
                     mode.finish();
                     return true;
-                case R.id.share:
+                case R.id.scan_qr:
                     onShareOptionClicked();
                     mode.finish();
                     return true;
@@ -201,11 +200,11 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         adapter.setCallback(new NoteAdapter.Callback() {
             @Override
             public void onItemClick(View view, int position, Note note) {
-                if (isMultiSelectionEnabled()) {
-                    multiSelector.checkView(view, position);
-                    updateActionModeTitle();
-                } else
-                    openPreviewActivity(view, mNoteGroup, position);
+//                if (isMultiSelectionEnabled()) {
+//                    multiSelector.checkView(view, position);
+//                    updateActionModeTitle();
+//                } else
+//                    openPreviewActivity(view, mNoteGroup, position);
             }
 
             @Override
@@ -223,7 +222,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     private void openPreviewActivity(View view, NoteGroup mNoteGroup, int position) {
         int[] screenLocation = new int[2];
-        ImageView imageView = (ImageView) view.findViewById(R.id.note_iv);
+        ImageView imageView = view.findViewById(R.id.note_iv);
         imageView.getLocationOnScreen(screenLocation);
         PreviewActivity.startPreviewActivity(mNoteGroup, position, this, screenLocation, imageView.getWidth(), imageView.getHeight());
         overridePendingTransition(0, 0);
@@ -281,12 +280,13 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onGeneratePDFClicked(MenuItem item) {
-        ArrayList<File> files = getFilesFromNoteGroup();
+        sharePDF();
+       /* ArrayList<File> files = getFilesFromNoteGroup();
         if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
             PDFEngine.getInstance().openPDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
         } else {
             PDFEngine.getInstance().createPDF(this, files, this);
-        }
+        }*/
     }
 
     public void onImportGalleryClicked(MenuItem item) {
@@ -345,8 +345,8 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onShareButtonClicked(MenuItem item) {
-        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
-        bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
+//        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
+//        bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
     }
 
     @Override

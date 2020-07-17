@@ -10,16 +10,12 @@
         android:onClick="onGeneratePDFClicked"/>
 
 
-    <item
+   <!-- <item
         android:id="@+id/share"
         app:showAsAction="always"
         android:title="Share"
         android:icon="@drawable/ic_share"
-        android:onClick="onShareButtonClicked"/>
+        android:onClick="onShareButtonClicked"/>-->
 
-    <item
-        android:id="@+id/import_gallery"
-        android:title="@string/import_from_gallery"
-        android:onClick="onImportGalleryClicked"/>
 
 </menu>

@@ -100,9 +100,9 @@ public class DBManager {
     }
 
     public void updateNoteGroupPDFInfo(int id, String pdfPath, int numOfFiles) {
-//        SQLite.update(NoteGroup.class)
-//                .set(NoteGroup_Table.pdfPath.eq(pdfPath))
-//                .where(NoteGroup_Table.id.eq(id))
-//                .query();
+        SQLite.update(NoteGroup.class)
+                .set(NoteGroup_Table.pdfPath.eq(pdfPath))
+                .where(NoteGroup_Table.id.eq(id))
+                .query();
     }
 }
