@@ -1,10 +1,14 @@
 package com.docscan.st.activity;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,7 +18,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,17 +31,34 @@ import com.docscan.st.activity.adapters.MultiSelector;
 import com.docscan.st.activity.adapters.NoteGroupAdapter;
 import com.docscan.st.activity.adapters.ParcelableSparseBooleanArray;
 import com.docscan.st.activity.callbacks.HomeView;
+import com.docscan.st.activity.callbacks.OnDialogClickListener;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.NoteGroup;
+import com.docscan.st.googledrive.DriveServiceHelper;
 import com.docscan.st.main.Const;
 import com.docscan.st.presenters.HomePresenter;
 import com.docscan.st.utils.AppUtility;
+import com.docscan.st.utils.DialogsUtils;
 import com.docscan.st.utils.ItemOffsetDecoration;
+import com.docscan.st.utils.PermissionUtils;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
 
 import org.parceler.Parcels;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -55,11 +80,15 @@ public class HomeActivity extends BaseActivity implements HomeView {
     ProgressBar progressBar;
 
     HomePresenter homePresenter;
+    DriveServiceHelper mDriveHelper;
+    Drive googleDriveServis;
 
     public static final String IS_IN_ACTION_MODE = "IS_IN_ACTION_MODE";
     private MultiSelector multiSelector;
     private ActionMode actionMode;
     private NoteGroup mNoteGroup;
+    static final Integer REQ_WRITE_EXST = 501;
+    static final Integer REQ_CAMERA = 502;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,11 +96,26 @@ public class HomeActivity extends BaseActivity implements HomeView {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+/*
+        if (checkCameraPermission()) {
+
+        } else {
+            requestPermission();
+        }*/
+        if (PermissionUtils.askForPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, REQ_WRITE_EXST)
+        ) {
+
+        }/* else if (PermissionUtils.askForPermission(this, Manifest.permission.CAMERA, REQ_CAMERA)) {
+
+        }*/// else {
+            ////showApplicationSettingsDialog();
+        //}
         init();
         if (savedInstanceState != null) {
             restoreSavedState(savedInstanceState);
         }
     }
+
 
     private void restoreSavedState(Bundle savedInstanceState) {
         // Restores the checked states
@@ -89,6 +133,21 @@ public class HomeActivity extends BaseActivity implements HomeView {
         actionMode.setTitle(String.valueOf(multiSelector.getCount()));
     }
 
+    private boolean checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            return false;
+        }
+        return true;
+    }
+
+    private void requestPermission() {
+
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.CAMERA},
+                REQ_CAMERA);
+    }
     private void startActionMode() {
         actionMode = startSupportActionMode(actionModeCallback);
     }
@@ -268,12 +327,20 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     public void onCameraClicked(View view) {
-        mNoteGroup = null;
-        int[] startingLocation = new int[2];
-        view.getLocationOnScreen(startingLocation);
-        startingLocation[0] += view.getWidth() / 2;
-        CameraActivity.startCameraFromLocation(startingLocation, this, 0);
-        overridePendingTransition(0, 0);
+
+        if (PermissionUtils.askForPermission(this, Manifest.permission.CAMERA, REQ_CAMERA)) {
+            mNoteGroup = null;
+            int[] startingLocation = new int[2];
+            view.getLocationOnScreen(startingLocation);
+            startingLocation[0] += view.getWidth() / 2;
+            CameraActivity.startCameraFromLocation(startingLocation, this, 0);
+            overridePendingTransition(0, 0);
+        }
+//        else{
+//            showApplicationSettingsDialog();
+//        }
+
+
     }
 
     @Override
@@ -298,8 +365,39 @@ public class HomeActivity extends BaseActivity implements HomeView {
     @Override
     protected void onResume() {
         super.onResume();
+
         if (homePresenter != null)
             homePresenter.loadNoteGroups();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED) {
+
+            if (requestCode == REQ_WRITE_EXST) {
+
+            } else if (requestCode == REQ_CAMERA) {
+
+            }
+
+        } else {
+            showApplicationSettingsDialog();
+            // Toast.makeText(this, "Grant all required permission from application settings", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    void showApplicationSettingsDialog() {
+        DialogsUtils.showMessageDialog(this, this.getString(R.string.please_grant_all_required_permissions_from_application_setting),false, new OnDialogClickListener() {
+            @Override
+            public void onButtonClicked(Boolean value) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -327,9 +425,23 @@ public class HomeActivity extends BaseActivity implements HomeView {
         AppUtility.rateOnPlayStore(this);
     }
 
+    //147041383461-oue2nri37orkgrvb4mgo29q3f91mla2i.apps.googleusercontent.com
     public void onScanQRClicked(MenuItem item) {
+        //new IntentIntegrator(this).initiateScan();
+
+        Intent intent = new Intent(this,SimpleScannerActivity.class);
+        startActivity(intent);
+//        if (mDriveHelper == null) {
+//            requestGooogleSignIn();
+//        } else {
+//            uploadPDFFile();
+//        }
+
+
 //        AppUtility.rateOnPlayStore(this);
-        Toast.makeText(this, "QR", Toast.LENGTH_SHORT).show();
+//        Intent i = new Intent(HomeActivity.this, QrCodeActivity.class);
+//        startActivityForResult( i,REQUEST_CODE_QR_SCAN);
+        //Toast.makeText(this, "QR", Toast.LENGTH_SHORT).show();
     }
 
     void addNoteToDB(String name) {
@@ -341,16 +453,87 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
-        super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-            ArrayList<Uri> list = (ArrayList<Uri>) imageReturnedIntent.getSerializableExtra(IMAGES);
+            ArrayList<Uri> list = (ArrayList<Uri>) data.getSerializableExtra(IMAGES);
             for (int i = 0; i < list.size(); i++) {
                 File file = new File(list.get(i).getPath());
                 addNoteToDB(file.getName());
             }
             init();
         }
+//      /*  IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+//        if (result != null) {
+//            if (result.getContents() == null) {
+//                Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+//            } else {
+//                Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
+//            }
+//        }*/
+      else if (requestCode == 400) {
+            if (resultCode == RESULT_OK) {
+
+                handleSignInIntent(data);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+
+    }
+
+    void handleSignInIntent(Intent intent) {
+        GoogleSignIn.getSignedInAccountFromIntent(intent)
+                .addOnSuccessListener(new OnSuccessListener<GoogleSignInAccount>() {
+                    @Override
+                    public void onSuccess(GoogleSignInAccount googleSignInAccount) {
+
+                        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(HomeActivity.this,
+                                Collections.singleton(DriveScopes.DRIVE_FILE));
+                        credential.setSelectedAccount(googleSignInAccount.getAccount());
+
+                        googleDriveServis = new Drive.Builder(
+                                AndroidHttp.newCompatibleTransport(),
+                                new GsonFactory(),
+                                credential)
+                                .setApplicationName("DocScan").build();
+
+                        mDriveHelper = new DriveServiceHelper(googleDriveServis);
+                        uploadPDFFile();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+    }
+
+    void uploadPDFFile() {
+        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
+
+        String path = "/storage/emulated/0/test.pdf";
+        mDriveHelper.createFilePDF(path).addOnSuccessListener(new OnSuccessListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                Log.d("Upload", "success " + s);
+                Toast.makeText(HomeActivity.this, "Success", Toast.LENGTH_SHORT).show();
+//                DriveFile file = Drive.DriveApi.getFile(googleApiClient,driveId);
+//                DriveResource.MetadataResult mdRslt = file.getMetadata(googleApiClient).await();
+//                if (mdRslt != null && mdRslt.getStatus().isSuccess()) {
+//                    String link = mdRslt.getMetadata().getWebContentLink();
+//                    Log.d("LINK", link);
+//                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("Upload", "success");
+                Toast.makeText(HomeActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -370,4 +553,38 @@ public class HomeActivity extends BaseActivity implements HomeView {
         finishAffinity();
     }
 
+
+    /*private void startScan() {
+     */
+
+    /**
+     * Build a new MaterialBarcodeScanner
+     *//*
+        final MaterialBarcodeScanner materialBarcodeScanner = new MaterialBarcodeScannerBuilder()
+                .withActivity(HomeActivity.this)
+                .withEnableAutoFocus(true)
+                .withBleepEnabled(true)
+                .withBackfacingCamera()
+                .withText("Scanning...")
+                .withResultListener(new MaterialBarcodeScanner.OnResultListener() {
+                    @Override
+                    public void onResult(Barcode barcode) {
+                        barcodeResult = barcode;
+                        result.setText(barcode.rawValue);
+                    }
+                })
+                .build();
+        materialBarcodeScanner.startScan();
+    }*/
+
+
+    void requestGooogleSignIn() {
+        GoogleSignInOptions option = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                .build();
+        GoogleSignInClient client = GoogleSignIn.getClient(this, option);
+        startActivityForResult(client.getSignInIntent(), 400);
+
+    }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/DocScan.iml" filepath="$PROJECT_DIR$/.idea/modules/DocScan.iml" group="DocScan" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="DocScan/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/imagestopdf/imagestopdf.iml" filepath="$PROJECT_DIR$/.idea/modules/imagestopdf/imagestopdf.iml" group="DocScan/imagestopdf" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scanlibrary/scanlibrary.iml" filepath="$PROJECT_DIR$/.idea/modules/scanlibrary/scanlibrary.iml" group="DocScan/scanlibrary" />
+    </modules>
+  </component>
+</project>

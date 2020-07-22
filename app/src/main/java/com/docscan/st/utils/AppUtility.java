@@ -27,6 +27,7 @@ public class AppUtility {
      * Create a File for saving an image
      */
     public static final int CAMERA_REQUEST_CODE = 0x9812;
+    public static final int REQUEST_CODE_QR_SCAN = 401;
     public static final String INTENT_DATA_NOTEGROUP_ID = "intent_data_notegroup_id";
     public static File getOutputMediaFile(String path, String name) {
         // To be safe, we should check that the SDCard is mounted

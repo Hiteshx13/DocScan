@@ -133,7 +133,6 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                 default:
                     return false;
             }
-
         }
 
         @Override

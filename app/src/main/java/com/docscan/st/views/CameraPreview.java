@@ -224,7 +224,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 //        canvas.drawLine(rect.right, rect.bottom, rect.left, rect.bottom, paint);
 //        canvas.drawLine(rect.left, rect.bottom, rect.left, rect.top, paint);
         Log.d("#Focus",">>>>>>>>");
-        canvasFrame.draw(canvas);
+      //  canvasFrame.draw(canvas);
         canvasFrame.invalidate();
     }
 

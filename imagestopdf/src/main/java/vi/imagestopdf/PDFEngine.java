@@ -50,9 +50,9 @@ public class PDFEngine {
 
         if(pdfFile.exists()) {
             intentShareFile.setType("application/pdf");
-            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Check out our app: https://goo.gl/FXwAmD");
+           // intentShareFile.putExtra(Intent.EXTRA_TEXT, "Check out our app: https://goo.gl/FXwAmD");
             intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse(pdfFile.getPath()));
-            intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "Shared via Document Scanner");
+            intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "Shared via DocScan");
 
             context.startActivity(Intent.createChooser(intentShareFile, "Share PDF"));
         }

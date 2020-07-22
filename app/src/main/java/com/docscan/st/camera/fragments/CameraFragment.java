@@ -114,7 +114,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     private int layoutId;
     private Camera camera;
     private Camera.Parameters parameters;
-//    private CameraPreview cameraPreview;
+    private CameraPreview cameraPreview;
     private ViewGroup previewContainer;
     private View mCapture;
     private ImageButton flashModeButton;
@@ -216,10 +216,10 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
             throw new RuntimeException("You should add container that extends ViewGroup for CameraPreview.");
         }
         ImageView canvasFrame = new ImageView(activity);
-        //cameraPreview = new CameraPreview(activity, camera, canvasFrame, this, this);
-//        previewContainer.addView(cameraPreview);
+        cameraPreview = new CameraPreview(activity, camera, canvasFrame, this, this);
+        previewContainer.addView(cameraPreview);
         previewContainer.addView(canvasFrame);
-//        cameraPreview.setFocusMode(focusMode);
+        cameraPreview.setFocusMode(focusMode);
 
 
         mCapture = view.findViewById(R.id.capture);
@@ -492,7 +492,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
                 callback.photoTaken(data.clone(), outputOrientation);
             }
             camera.startPreview();
-//            cameraPreview.onPictureTaken();
+            cameraPreview.onPictureTaken();
 
             if (mProgress != null && captureMode == CameraConst.CAPTURE_BATCH_MODE)
                 mProgress.setVisibility(View.VISIBLE);
@@ -630,7 +630,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
     @Override
     public void onFocusModeChanged(int id) {
         focusMode = FocusMode.getFocusModeById(id);
-//        cameraPreview.setFocusMode(focusMode);
+        cameraPreview.setFocusMode(focusMode);
         if (paramsChangedListener != null) {
             paramsChangedListener.onFocusModeChanged(id);
         }
@@ -659,7 +659,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         // mCapture.setVisibility(View.INVISIBLE);
 //        ((ImageButton)mCapture).setImageResource(0);
 
-//        cameraPreview.takePicture();
+        cameraPreview.takePicture();
         previewImageView.setEnabled(false);
     }
 
