@@ -106,9 +106,9 @@ public class DBManager {
                 .query();
     }
 
-    public void updateNoteDriveInfo(int id, String pdfPath, int numOfFiles) {
+    public void updateNoteDriveInfo(int id, String drivePath) {
         SQLite.update(NoteGroup.class)
-                .set(NoteGroup_Table.pdfPath.eq(pdfPath))
+                .set(NoteGroup_Table.drivePath.eq(drivePath))
                 .where(NoteGroup_Table.id.eq(id))
                 .query();
     }

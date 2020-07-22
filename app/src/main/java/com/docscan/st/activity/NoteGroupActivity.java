@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -76,6 +77,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     @BindView(R.id.noteGroup_rv)
     RecyclerView noteRecyclerView;
+
+    @BindView(R.id.progressBar)
+    ProgressBar progressBar;
 
 
     private NoteGroup mNoteGroup;
@@ -387,38 +391,18 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
 
     void uploadPDFFile() {
-        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
-
+        //Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
+        progressBar.setVisibility(View.VISIBLE);
         String path = mNoteGroup.pdfPath;
         mDriveHelper.createFilePDF(path).addOnSuccessListener(new OnSuccessListener<String>() {
             @Override
             public void onSuccess(String s) {
                 Log.d("Upload", "success " + s);
-                mNoteGroup.drivePath=s;
-                QRCodeWriter writer = new QRCodeWriter();
-                try {
-                    BitMatrix bitMatrix = writer.encode(s, BarcodeFormat.QR_CODE, 512, 512);
-                    int width = bitMatrix.getWidth();
-                    int height = bitMatrix.getHeight();
-                    Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-                    for (int x = 0; x < width; x++) {
-                        for (int y = 0; y < height; y++) {
-                            bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
-                        }
-                    }
-
-                    DialogsUtils.showImageDialog(NoteGroupActivity.this, bmp, false, new OnDialogClickListener() {
-                        @Override
-                        public void onButtonClicked(Boolean value) {
-
-                        }
-                    });
-                    //((ImageView) findViewById(R.id.img_result_qr)).setImageBitmap(bmp);
-
-                } catch (WriterException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(NoteGroupActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+                mNoteGroup.drivePath = s;
+                DBManager.getInstance().updateNoteDriveInfo(mNoteGroup.id, s);
+                showQRcode(s);
+                //Toast.makeText(NoteGroupActivity.this, "Success", Toast.LENGTH_SHORT).show();
 //                DriveFile file = Drive.DriveApi.getFile(googleApiClient,driveId);
 //                DriveResource.MetadataResult mdRslt = file.getMetadata(googleApiClient).await();
 //                if (mdRslt != null && mdRslt.getStatus().isSuccess()) {
@@ -433,6 +417,32 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                 Toast.makeText(NoteGroupActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    void showQRcode(String content) {
+        QRCodeWriter writer = new QRCodeWriter();
+        try {
+            BitMatrix bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, 512, 512);
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+
+            DialogsUtils.showImageDialog(NoteGroupActivity.this, bmp, false, new OnDialogClickListener() {
+                @Override
+                public void onButtonClicked(Boolean value) {
+
+                }
+            });
+            //((ImageView) findViewById(R.id.img_result_qr)).setImageBitmap(bmp);
+
+        } catch (WriterException e) {
+            e.printStackTrace();
+        }
     }
 
     void requestGooogleSignIn() {
@@ -486,7 +496,12 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     @Override
     public void shareImage() {
         isSharingQR = true;
-        share(true);
+        if (mNoteGroup.drivePath == null) {
+            share(true);
+        } else {
+            showQRcode(mNoteGroup.drivePath);
+        }
+
 
         //AppUtility.shareDocuments(this, AppUtility.getUrisFromNotes(mNoteGroup.getNotes()));
     }
