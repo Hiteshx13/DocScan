@@ -37,6 +37,7 @@
         android:layout_margin="16dp"
         android:clickable="true"
         android:src="@drawable/camera"
+        android:visibility="gone"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:onClick="onCameraClicked" />

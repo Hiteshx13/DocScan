@@ -2,20 +2,20 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
+   <!-- <item
         android:id="@+id/generate_pdf"
         android:title="@string/generate_pdf"
         android:icon="@drawable/pdf_gen"
         app:showAsAction="always"
-        android:onClick="onGeneratePDFClicked"/>
+        android:onClick="onGeneratePDFClicked"/>-->
 
 
-   <!-- <item
+    <item
         android:id="@+id/share"
         app:showAsAction="always"
         android:title="Share"
         android:icon="@drawable/ic_share"
-        android:onClick="onShareButtonClicked"/>-->
+        android:onClick="onShareButtonClicked"/>
 
 
 </menu>

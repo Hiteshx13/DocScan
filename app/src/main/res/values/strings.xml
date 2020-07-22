@@ -62,6 +62,7 @@
     <string name="generate_pdf">Generate PDF</string>
     <string name="share_pdf">Share PDF</string>
     <string name="share_images">Share images</string>
+    <string name="share_qr_code">Share QR code</string>
     <string name="please_grant_all_required_permissions_from_application_setting">Please grant all required permissions from application setting</string>
     <string name="ok">OK</string>
 

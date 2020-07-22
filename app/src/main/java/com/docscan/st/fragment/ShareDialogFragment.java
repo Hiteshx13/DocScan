@@ -82,7 +82,7 @@ public class ShareDialogFragment extends BottomSheetDialogFragment {
                 if(shareDialogListener!=null) {
                     if (item.title.equals(getResources().getString(R.string.share_pdf))) {
                         shareDialogListener.sharePDF();
-                    } else if (item.title.equals(getResources().getString(R.string.share_images))) {
+                    } else if (item.title.equals(getResources().getString(R.string.share_qr_code))) {
                         shareDialogListener.shareImage();
                     }
                 }
@@ -95,7 +95,7 @@ public class ShareDialogFragment extends BottomSheetDialogFragment {
 
         ArrayList<BottomSheetModel> items = new ArrayList<>();
         items.add(new BottomSheetModel(R.drawable.pdf_blue, getResources().getString(R.string.share_pdf)));
-        items.add(new BottomSheetModel(R.drawable.image_blue, getResources().getString(R.string.share_images)));
+        items.add(new BottomSheetModel(R.drawable.enhance_gray, getResources().getString(R.string.share_qr_code)));
 
         return items;
     }

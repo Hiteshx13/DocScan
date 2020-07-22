@@ -11,32 +11,33 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class DriveServiceHelper {
-    private final Executor mExecutor= Executors.newSingleThreadExecutor();
+    private final Executor mExecutor = Executors.newSingleThreadExecutor();
     private Drive mDriveService;
 
-    public DriveServiceHelper(Drive mDriveService){
+    public DriveServiceHelper(Drive mDriveService) {
 
-        this.mDriveService=mDriveService;
+        this.mDriveService = mDriveService;
     }
 
-    public Task<String> createFilePDF(String filePath){
+    public Task<String> createFilePDF(String filePath) {
 
-        return Tasks.call(mExecutor,()->{
+        return Tasks.call(mExecutor, () -> {
 
-            File fileMetaData=new File();
-            fileMetaData.setName("MyPDF");
             java.io.File file = new java.io.File(filePath);
-            FileContent mediaContent=new FileContent("application/pdf",file);
-            File myFile=null;
-            try{
-                myFile=mDriveService.files().create(fileMetaData,mediaContent).execute();
 
-            }catch (Exception e){
+            File fileMetaData = new File();
+            fileMetaData.setName(file.getName());
+            FileContent mediaContent = new FileContent("application/pdf", file);
+            File myFile = null;
+            try {
+                myFile = mDriveService.files().create(fileMetaData, mediaContent).execute();
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            if(myFile==null){
-                throw  new IOException("Null result when requesting file creation");
+            if (myFile == null) {
+                throw new IOException("Null result when requesting file creation");
             }
             return myFile.getId();
         });

@@ -2,14 +2,19 @@ package com.docscan.st.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -19,21 +24,42 @@ import com.docscan.st.R;
 import com.docscan.st.activity.adapters.MultiSelector;
 import com.docscan.st.activity.adapters.NoteAdapter;
 import com.docscan.st.activity.adapters.ParcelableSparseBooleanArray;
+import com.docscan.st.activity.callbacks.OnDialogClickListener;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.Note;
 import com.docscan.st.db.models.NoteGroup;
+import com.docscan.st.fragment.ShareDialogFragment;
 import com.docscan.st.fragment.ShareDialogFragment.ShareDialogListener;
+import com.docscan.st.googledrive.DriveServiceHelper;
 import com.docscan.st.main.Const;
 import com.docscan.st.manager.NotificationManager;
 import com.docscan.st.manager.NotificationModel;
 import com.docscan.st.manager.NotificationObserver;
 import com.docscan.st.utils.AppUtility;
+import com.docscan.st.utils.DialogsUtils;
 import com.docscan.st.utils.ItemOffsetDecoration;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import org.parceler.Parcels;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Observable;
 
@@ -58,6 +84,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     public static final String IS_IN_ACTION_MODE = "IS_IN_ACTION_MODE";
     private ActionMode actionMode;
     private boolean isShareClicked;
+    private boolean isSharingQR = false;
+    DriveServiceHelper mDriveHelper;
+    Drive googleDriveServis;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -279,7 +308,10 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onGeneratePDFClicked(MenuItem item) {
-        sharePDF();
+
+        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
+        bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
+
        /* ArrayList<File> files = getFilesFromNoteGroup();
         if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
             PDFEngine.getInstance().openPDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
@@ -314,7 +346,103 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                     updateView(mNoteGroup);
                 }
             }
+        } else if (requestCode == 400) {
+            if (resultCode == RESULT_OK) {
+
+                handleSignInIntent(data);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    void handleSignInIntent(Intent intent) {
+        GoogleSignIn.getSignedInAccountFromIntent(intent)
+                .addOnSuccessListener(new OnSuccessListener<GoogleSignInAccount>() {
+                    @Override
+                    public void onSuccess(GoogleSignInAccount googleSignInAccount) {
+
+                        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(NoteGroupActivity.this,
+                                Collections.singleton(DriveScopes.DRIVE_FILE));
+                        credential.setSelectedAccount(googleSignInAccount.getAccount());
+
+                        googleDriveServis = new Drive.Builder(
+                                AndroidHttp.newCompatibleTransport(),
+                                new GsonFactory(),
+                                credential)
+                                .setApplicationName("DocScan").build();
+
+                        mDriveHelper = new DriveServiceHelper(googleDriveServis);
+                        uploadPDFFile();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+    }
+
+
+    void uploadPDFFile() {
+        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
+
+        String path = mNoteGroup.pdfPath;
+        mDriveHelper.createFilePDF(path).addOnSuccessListener(new OnSuccessListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                Log.d("Upload", "success " + s);
+                mNoteGroup.drivePath=s;
+                QRCodeWriter writer = new QRCodeWriter();
+                try {
+                    BitMatrix bitMatrix = writer.encode(s, BarcodeFormat.QR_CODE, 512, 512);
+                    int width = bitMatrix.getWidth();
+                    int height = bitMatrix.getHeight();
+                    Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+                    for (int x = 0; x < width; x++) {
+                        for (int y = 0; y < height; y++) {
+                            bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                        }
+                    }
+
+                    DialogsUtils.showImageDialog(NoteGroupActivity.this, bmp, false, new OnDialogClickListener() {
+                        @Override
+                        public void onButtonClicked(Boolean value) {
+
+                        }
+                    });
+                    //((ImageView) findViewById(R.id.img_result_qr)).setImageBitmap(bmp);
+
+                } catch (WriterException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(NoteGroupActivity.this, "Success", Toast.LENGTH_SHORT).show();
+//                DriveFile file = Drive.DriveApi.getFile(googleApiClient,driveId);
+//                DriveResource.MetadataResult mdRslt = file.getMetadata(googleApiClient).await();
+//                if (mdRslt != null && mdRslt.getStatus().isSuccess()) {
+//                    String link = mdRslt.getMetadata().getWebContentLink();
+//                    Log.d("LINK", link);
+//                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("Upload", "success");
+                Toast.makeText(NoteGroupActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    void requestGooogleSignIn() {
+        GoogleSignInOptions option = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                .build();
+        GoogleSignInClient client = GoogleSignIn.getClient(this, option);
+        startActivityForResult(client.getSignInIntent(), 400);
+
     }
 
     void addNoteToDB(String name) {
@@ -344,33 +472,57 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onShareButtonClicked(MenuItem item) {
-//        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
-//        bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
+        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
+        bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
     }
 
     @Override
     public void sharePDF() {
-        ArrayList<File> files = getFilesFromNoteGroup();
-        if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
-            PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
-        } else {
-            isShareClicked = true;
-            PDFEngine.getInstance().createPDF(this, files, this);
-        }
+        isSharingQR = false;
+        share(false);
+
     }
 
     @Override
     public void shareImage() {
-        AppUtility.shareDocuments(this, AppUtility.getUrisFromNotes(mNoteGroup.getNotes()));
+        isSharingQR = true;
+        share(true);
+
+        //AppUtility.shareDocuments(this, AppUtility.getUrisFromNotes(mNoteGroup.getNotes()));
+    }
+
+    void share(Boolean isQR) {
+        ArrayList<File> files = getFilesFromNoteGroup();
+        if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
+            if (isQR) {
+                performGoogleLogin();
+            } else {
+                PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
+            }
+
+        } else {
+            isShareClicked = !isQR;
+            PDFEngine.getInstance().createPDF(this, files, this);
+        }
+    }
+
+
+    void performGoogleLogin() {
+        if (googleDriveServis == null) {
+            requestGooogleSignIn();
+        } else {
+            uploadPDFFile();
+        }
     }
 
     @Override
     public void onPDFGenerated(File pdfFile, int numOfImages) {
         if (pdfFile != null) {
             this.mNoteGroup.pdfPath = pdfFile.getPath();
+
             if (pdfFile.exists()) {
                 if (!isShareClicked)
-                    PDFEngine.getInstance().openPDF(NoteGroupActivity.this, pdfFile);
+                    performGoogleLogin();
                 else
                     PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, pdfFile);
 
@@ -379,4 +531,5 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             isShareClicked = false;
         }
     }
+
 }

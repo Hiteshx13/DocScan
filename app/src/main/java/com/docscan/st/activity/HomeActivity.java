@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -34,31 +32,18 @@ import com.docscan.st.activity.callbacks.HomeView;
 import com.docscan.st.activity.callbacks.OnDialogClickListener;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.NoteGroup;
-import com.docscan.st.googledrive.DriveServiceHelper;
 import com.docscan.st.main.Const;
 import com.docscan.st.presenters.HomePresenter;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.DialogsUtils;
 import com.docscan.st.utils.ItemOffsetDecoration;
 import com.docscan.st.utils.PermissionUtils;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.parceler.Parcels;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -79,9 +64,11 @@ public class HomeActivity extends BaseActivity implements HomeView {
     @BindView(R.id.progress)
     ProgressBar progressBar;
 
+    @BindView(R.id.fab)
+    FloatingActionButton btnCamera;
+
     HomePresenter homePresenter;
-    DriveServiceHelper mDriveHelper;
-    Drive googleDriveServis;
+
 
     public static final String IS_IN_ACTION_MODE = "IS_IN_ACTION_MODE";
     private MultiSelector multiSelector;
@@ -96,6 +83,12 @@ public class HomeActivity extends BaseActivity implements HomeView {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCameraClicked(v);
+            }
+        });
 /*
         if (checkCameraPermission()) {
 
@@ -108,7 +101,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
         }/* else if (PermissionUtils.askForPermission(this, Manifest.permission.CAMERA, REQ_CAMERA)) {
 
         }*/// else {
-            ////showApplicationSettingsDialog();
+        ////showApplicationSettingsDialog();
         //}
         init();
         if (savedInstanceState != null) {
@@ -134,12 +127,8 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     private boolean checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            return false;
-        }
-        return true;
+        // Permission is not granted
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermission() {
@@ -148,6 +137,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
                 new String[]{Manifest.permission.CAMERA},
                 REQ_CAMERA);
     }
+
     private void startActionMode() {
         actionMode = startSupportActionMode(actionModeCallback);
     }
@@ -378,7 +368,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
             if (requestCode == REQ_WRITE_EXST) {
 
             } else if (requestCode == REQ_CAMERA) {
-
+                btnCamera.performClick();
             }
 
         } else {
@@ -389,7 +379,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
 
 
     void showApplicationSettingsDialog() {
-        DialogsUtils.showMessageDialog(this, this.getString(R.string.please_grant_all_required_permissions_from_application_setting),false, new OnDialogClickListener() {
+        DialogsUtils.showMessageDialog(this, this.getString(R.string.please_grant_all_required_permissions_from_application_setting), false, new OnDialogClickListener() {
             @Override
             public void onButtonClicked(Boolean value) {
                 Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -429,7 +419,7 @@ public class HomeActivity extends BaseActivity implements HomeView {
     public void onScanQRClicked(MenuItem item) {
         //new IntentIntegrator(this).initiateScan();
 
-        Intent intent = new Intent(this,SimpleScannerActivity.class);
+        Intent intent = new Intent(this, SimpleScannerActivity.class);
         startActivity(intent);
 //        if (mDriveHelper == null) {
 //            requestGooogleSignIn();
@@ -471,70 +461,10 @@ public class HomeActivity extends BaseActivity implements HomeView {
 //                Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
 //            }
 //        }*/
-      else if (requestCode == 400) {
-            if (resultCode == RESULT_OK) {
 
-                handleSignInIntent(data);
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
 
     }
 
-    void handleSignInIntent(Intent intent) {
-        GoogleSignIn.getSignedInAccountFromIntent(intent)
-                .addOnSuccessListener(new OnSuccessListener<GoogleSignInAccount>() {
-                    @Override
-                    public void onSuccess(GoogleSignInAccount googleSignInAccount) {
-
-                        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(HomeActivity.this,
-                                Collections.singleton(DriveScopes.DRIVE_FILE));
-                        credential.setSelectedAccount(googleSignInAccount.getAccount());
-
-                        googleDriveServis = new Drive.Builder(
-                                AndroidHttp.newCompatibleTransport(),
-                                new GsonFactory(),
-                                credential)
-                                .setApplicationName("DocScan").build();
-
-                        mDriveHelper = new DriveServiceHelper(googleDriveServis);
-                        uploadPDFFile();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-
-    }
-
-    void uploadPDFFile() {
-        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
-
-        String path = "/storage/emulated/0/test.pdf";
-        mDriveHelper.createFilePDF(path).addOnSuccessListener(new OnSuccessListener<String>() {
-            @Override
-            public void onSuccess(String s) {
-                Log.d("Upload", "success " + s);
-                Toast.makeText(HomeActivity.this, "Success", Toast.LENGTH_SHORT).show();
-//                DriveFile file = Drive.DriveApi.getFile(googleApiClient,driveId);
-//                DriveResource.MetadataResult mdRslt = file.getMetadata(googleApiClient).await();
-//                if (mdRslt != null && mdRslt.getStatus().isSuccess()) {
-//                    String link = mdRslt.getMetadata().getWebContentLink();
-//                    Log.d("LINK", link);
-//                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("Upload", "success");
-                Toast.makeText(HomeActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     @Override
     public void onBackPressed() {
@@ -578,13 +508,4 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }*/
 
 
-    void requestGooogleSignIn() {
-        GoogleSignInOptions option = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
-                .build();
-        GoogleSignInClient client = GoogleSignIn.getClient(this, option);
-        startActivityForResult(client.getSignInIntent(), 400);
-
-    }
 }

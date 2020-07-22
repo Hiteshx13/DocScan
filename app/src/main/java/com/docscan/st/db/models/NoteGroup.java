@@ -40,6 +40,9 @@ public class NoteGroup extends BaseModel {
     public String pdfPath;
 
     @Column
+    public String drivePath;
+
+    @Column
     public int numOfImagesInPDF;
 
     public List<Note> notes;
