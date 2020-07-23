@@ -143,7 +143,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            mode.getMenuInflater().inflate(R.menu.context_menu, menu);
+            mode.getMenuInflater().inflate(R.menu.context_menu_note, menu);
             return true;
         }
 
@@ -436,6 +436,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                 @Override
                 public void onButtonClicked(Boolean value) {
 
+                    if (!value) {
+                        AppUtility.shareImage(NoteGroupActivity.this, bmp);
+                    }
                 }
             });
             //((ImageView) findViewById(R.id.img_result_qr)).setImageBitmap(bmp);
@@ -444,6 +447,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             e.printStackTrace();
         }
     }
+
 
     void requestGooogleSignIn() {
         GoogleSignInOptions option = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

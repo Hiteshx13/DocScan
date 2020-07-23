@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import androidx.fragment.app.Fragment;
 
@@ -38,6 +39,7 @@ public class ScanFragment extends Fragment {
     private FrameLayout sourceFrame;
     private PolygonView polygonView;
     private View view;
+    ProgressBar progressbar;
     private ProgressDialogFragment progressDialogFragment;
     private IScanner scanner;
     //    private Uri finalUri;
@@ -69,6 +71,7 @@ public class ScanFragment extends Fragment {
 
     private void init() {
         sourceImageView = view.findViewById(R.id.sourceImageView);
+        progressbar = view.findViewById(R.id.progressbar);
 //        scanButton = view.findViewById(R.id.scanButton);
         // scanButton.setOnClickListener(new ScanButtonClickListener());
         sourceFrame = view.findViewById(R.id.sourceFrame);
@@ -253,12 +256,12 @@ public class ScanFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            showProgressDialog(getString(R.string.scanning));
+            progressbar.setVisibility(View.VISIBLE);
         }
 
         @Override
         protected ArrayList<Uri> doInBackground(Void... params) {
-
+           // showProgressDialog(getString(R.string.scanning));
 
             for (int i = 0; i < imageList.size(); i++) {
                 Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));
@@ -292,7 +295,8 @@ public class ScanFragment extends Fragment {
     }
 
     protected void dismissDialog() {
-        progressDialogFragment.dismissAllowingStateLoss();
+        progressbar.setVisibility(View.GONE);
+//        progressDialogFragment.dismissAllowingStateLoss();
     }
 
 }

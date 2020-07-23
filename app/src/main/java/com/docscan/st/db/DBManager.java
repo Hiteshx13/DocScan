@@ -93,10 +93,10 @@ public class DBManager {
     }
 
     public void updateNoteGroupName(int id, String name) {
-//        SQLite.update(NoteGroup.class)
-//                .set(NoteGroup_Table.name.eq(name))
-//                .where(NoteGroup_Table.id.eq(id))
-//                .query();
+        SQLite.update(NoteGroup.class)
+                .set(NoteGroup_Table.name.eq(name))
+                .where(NoteGroup_Table.id.eq(id))
+                .query();
     }
 
     public void updateNoteGroupPDFInfo(int id, String pdfPath, int numOfFiles) {

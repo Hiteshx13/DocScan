@@ -46,12 +46,21 @@ public class DialogsUtils {
 
         AppCompatImageView ivImage = mDialog.findViewById(R.id.ivImage);
         AppCompatTextView tvOk = mDialog.findViewById(R.id.tvOK);
+        AppCompatTextView tvShare = mDialog.findViewById(R.id.tvShare);
 
         ivImage.setImageBitmap(bitmap);
         tvOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickListener.onButtonClicked(true);
+                mDialog.dismiss();
+            }
+        });
+
+        tvShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickListener.onButtonClicked(false);
                 mDialog.dismiss();
             }
         });

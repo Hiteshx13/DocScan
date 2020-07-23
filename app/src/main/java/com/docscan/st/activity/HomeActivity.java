@@ -203,11 +203,11 @@ public class HomeActivity extends BaseActivity implements HomeView {
     }
 
     private void showEditActionMode(boolean b) {
-//        if (actionMode != null) {
-//            MenuItem menuItem = actionMode.getMenu().findItem(R.id.edit);
-//            if (menuItem != null)
-//                menuItem.setVisible(b);
-//        }
+        if (actionMode != null) {
+            MenuItem menuItem = actionMode.getMenu().findItem(R.id.edit);
+            if (menuItem != null)
+                menuItem.setVisible(b);
+        }
     }
 
 
@@ -242,10 +242,10 @@ public class HomeActivity extends BaseActivity implements HomeView {
                     onShareOptionClicked();
                     mode.finish();
                     return true;*/
-//                case R.id.edit:
-//                    onEditOptionClicked();
-//                    mode.finish();
-//                    return true;
+                case R.id.edit:
+                    onEditOptionClicked();
+                    mode.finish();
+                    return true;
 
                 default:
                     return false;

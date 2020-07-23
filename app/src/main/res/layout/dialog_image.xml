@@ -26,6 +26,19 @@
         android:textSize="16sp"
         android:textStyle="bold" />
 
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tvShare"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:padding="10dp"
+        android:layout_marginEnd="30dp"
+        android:layout_toStartOf="@+id/tvOK"
+        android:text="@string/share"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

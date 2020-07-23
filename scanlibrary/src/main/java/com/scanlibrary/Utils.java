@@ -35,7 +35,7 @@ public class Utils {
     private static String createName() {
         String IMG_PREFIX = "IMG_";
         String IMG_POSTFIX = ".jpg";
-        String TIME_FORMAT = "yyyyMMdd_HH_mm_ss";
+        String TIME_FORMAT = "yyyyMMdd_HH_mm_ss_SSS";
 
         String timeStamp = new SimpleDateFormat(TIME_FORMAT).format(new Date());
         return IMG_PREFIX + timeStamp + IMG_POSTFIX;

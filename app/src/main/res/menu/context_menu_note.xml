@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
+  <!--  <item
         android:id="@+id/edit"
         app:showAsAction="always"
         android:title="Edit"
-        android:icon="@drawable/ic_rename"/>
+        android:icon="@drawable/ic_rename"/>-->
 
   <!--  <item
          android:id="@+id/share"
