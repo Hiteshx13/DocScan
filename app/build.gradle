@@ -111,4 +111,7 @@ dependencies {
     implementation 'com.google.http-client:google-http-client-gson:1.26.0'
 
     implementation 'com.android.support:multidex:1.0.3'
+    //Dropbox
+    implementation 'com.dropbox.core:dropbox-core-sdk:2.0.1'
+
 }

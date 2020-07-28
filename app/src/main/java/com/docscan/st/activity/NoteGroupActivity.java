@@ -29,6 +29,8 @@ import com.docscan.st.activity.callbacks.OnDialogClickListener;
 import com.docscan.st.db.DBManager;
 import com.docscan.st.db.models.Note;
 import com.docscan.st.db.models.NoteGroup;
+import com.docscan.st.dropboxclient.DropboxClient;
+import com.docscan.st.dropboxclient.UploadFileTask;
 import com.docscan.st.fragment.ShareDialogFragment;
 import com.docscan.st.fragment.ShareDialogFragment.ShareDialogListener;
 import com.docscan.st.googledrive.DriveServiceHelper;
@@ -39,6 +41,8 @@ import com.docscan.st.manager.NotificationObserver;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.DialogsUtils;
 import com.docscan.st.utils.ItemOffsetDecoration;
+import com.dropbox.core.android.Auth;
+import com.dropbox.core.v2.files.FileMetadata;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -91,6 +95,8 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     private boolean isSharingQR = false;
     DriveServiceHelper mDriveHelper;
     Drive googleDriveServis;
+    String accessToken;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -125,6 +131,15 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             setToolbar(mNoteGroup);
         } else
             finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        if(isShareClicked){
+////            performGoogleLogin();
+//            performDropBoxLogin();
+//        }
     }
 
     private void updateActionModeTitle() {
@@ -398,10 +413,12 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             @Override
             public void onSuccess(String s) {
                 Log.d("Upload", "success " + s);
+                String filePath = "https://docs.google.com/a/google.com/uc?id=" + s + "&export=download";
+//                https://drive.google.com/file/d/1NDOVKPKckQIzPzCFm97mhJOMifnLDk3e/view?usp=sharing
                 progressBar.setVisibility(View.GONE);
-                mNoteGroup.drivePath = s;
-                DBManager.getInstance().updateNoteDriveInfo(mNoteGroup.id, s);
-                showQRcode(s);
+                mNoteGroup.drivePath = filePath;
+                DBManager.getInstance().updateNoteDriveInfo(mNoteGroup.id, filePath);
+                showQRcode(filePath);
                 //Toast.makeText(NoteGroupActivity.this, "Success", Toast.LENGTH_SHORT).show();
 //                DriveFile file = Drive.DriveApi.getFile(googleApiClient,driveId);
 //                DriveResource.MetadataResult mdRslt = file.getMetadata(googleApiClient).await();
@@ -500,6 +517,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     @Override
     public void shareImage() {
         isSharingQR = true;
+        isShareClicked = true;
         if (mNoteGroup.drivePath == null) {
             share(true);
         } else {
@@ -515,6 +533,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         if (mNoteGroup.pdfPath != null && PDFEngine.getInstance().checkIfPDFExists(files, new File(mNoteGroup.pdfPath).getName())) {
             if (isQR) {
                 performGoogleLogin();
+//                performDropBoxLogin();
             } else {
                 PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, new File(mNoteGroup.pdfPath));
             }
@@ -526,7 +545,49 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
 
+    void performDropBoxLogin() {
+        accessToken = Auth.getOAuth2Token();
+        if (isDopBoxLogin()) {
+            uploadFileInDropBox();
+        } else {
+            Auth.startOAuth2Authentication(getApplicationContext(), getString(R.string.app_key_dropbox));
+        }
+    }
+
+    boolean isDopBoxLogin() {
+        return accessToken != null && !accessToken.isEmpty();
+    }
+
+    void uploadFileInDropBox() {
+        progressBar.setVisibility(View.VISIBLE);
+        File file = new File(mNoteGroup.pdfPath);
+        if (file != null) {
+            //Initialize UploadTask
+            new UploadFileTask(this, DropboxClient.getClient(accessToken), new UploadFileTask.Callback() {
+                @Override
+                public void onUploadComplete(FileMetadata result) {
+                    Log.d("", "");
+                    progressBar.setVisibility(View.GONE);
+
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.d("", "");
+                    progressBar.setVisibility(View.GONE);
+                }
+            }).execute(mNoteGroup.pdfPath);
+           /* new UploadTask(DropboxClient.getClient(accessToken), file, this, new OnDropBoxUploaded() {
+                @Override
+                public void onFileUploaded(String s) {
+                    Log.d("","");
+                }
+            }).execute();*/
+        }
+    }
+
     void performGoogleLogin() {
+
         if (googleDriveServis == null) {
             requestGooogleSignIn();
         } else {
@@ -541,7 +602,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
             if (pdfFile.exists()) {
                 if (!isShareClicked)
+//                    performDropBoxLogin();
                     performGoogleLogin();
+
                 else
                     PDFEngine.getInstance().sharePDF(NoteGroupActivity.this, pdfFile);
 
@@ -550,5 +613,4 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             isShareClicked = false;
         }
     }
-
 }

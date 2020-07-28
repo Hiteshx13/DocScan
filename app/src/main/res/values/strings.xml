@@ -26,6 +26,8 @@
     <string name="app_name">DocScan</string>
     <string name="lbl_string_apply">Apply</string>
     <string name="client_id">150346749263-05r76pq5cbofd6atoetkn6i681parri6.apps.googleusercontent.com</string>
+    <string name="app_key_dropbox">zg4c4qkhg50pvle</string>
+    <string name="app_key_dropbox_db">db-zg4c4qkhg50pvle</string>
     <string name="google_api_key">AIzaSyA3HUforXYEZJxApnfEcl5eZFLopFqEXE0</string>
 
     <string name="lbl_cancel">Cancel</string>
