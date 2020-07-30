@@ -29,6 +29,10 @@
     <string name="app_key_dropbox">zg4c4qkhg50pvle</string>
     <string name="app_key_dropbox_db">db-zg4c4qkhg50pvle</string>
     <string name="google_api_key">AIzaSyA3HUforXYEZJxApnfEcl5eZFLopFqEXE0</string>
+    <string name="msg">"Note: Turn your "\"link sharing on"\" from Google drive.
+Otherwise scanner will not work on it.
+
+Drive > select file > ... > link sharing on."</string>
 
     <string name="lbl_cancel">Cancel</string>
     <string name="lbl_delete">Delete</string>
