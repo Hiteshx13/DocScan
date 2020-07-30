@@ -43,9 +43,11 @@ public class ScanFragment extends Fragment {
     private ProgressDialogFragment progressDialogFragment;
     private IScanner scanner;
     //    private Uri finalUri;
-    private Bitmap original;
+    private Bitmap original, scaledBitmap, tempBitmap;
+    Map<Integer, PointF> pointFs;
     String imagePath;
     ScanActivity scanActivity;
+    List<PointF> listPoints;
 
     public ScanFragment(Context context) {
         this.scanActivity = (ScanActivity) context;
@@ -68,6 +70,17 @@ public class ScanFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (isValidPoints()) {
+            pointFs = polygonView.getPoints();
+            listPoints = null;
+        } else {
+            listPoints = polygonView.invalidPoints;
+        }
+    }
 
     private void init() {
         sourceImageView = view.findViewById(R.id.sourceImageView);
@@ -81,7 +94,7 @@ public class ScanFragment extends Fragment {
             public void run() {
                 original = getBitmap();
                 if (original != null) {
-                    setBitmap(original);
+                    setBitmap();
                 }
             }
         });
@@ -99,6 +112,7 @@ public class ScanFragment extends Fragment {
         return imagePath;
     }
 
+
     public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath) {
         Log.d("performOnClick", "start...");
         //if (isScanPointsValid(points)) {
@@ -109,18 +123,35 @@ public class ScanFragment extends Fragment {
     }
 
     private Bitmap getBitmap() {
-        Uri uri = getUri();
-        if(imagePath.startsWith("content")){
-            uri=Uri.parse(imagePath);
-        }
-        try {
-            Bitmap bitmap = Utils.getBitmap(getActivity(), uri);
+        if (original == null) {
+
+            Uri uri = getUri();
+    /*    Glide.with(scanActivity)
+                .asBitmap()
+                .load(uri)
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                        return resource;
+                    }
+                });
+*/
+
+            if (imagePath.startsWith("content")) {
+                uri = Uri.parse(imagePath);
+            }
+            try {
+                Bitmap bitmap = Utils.getBitmap(getActivity(), uri);
 //            getActivity().getContentResolver().delete(uri, null, null);
-            return bitmap;
-        } catch (IOException e) {
-            e.printStackTrace();
+                return bitmap;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        } else {
+            return original;
         }
-        return null;
     }
 
     private Uri getUri() {
@@ -128,18 +159,35 @@ public class ScanFragment extends Fragment {
         return uri;
     }
 
-    private void setBitmap(Bitmap original) {
-        Bitmap scaledBitmap = scaledBitmap(original, sourceFrame.getWidth(), sourceFrame.getHeight());
-        sourceImageView.setImageBitmap(scaledBitmap);
+    private void setBitmap() {
 
-        Bitmap tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
-        Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
-        polygonView.setPoints(pointFs);
+        if (scaledBitmap == null) {
+            scaledBitmap = scaledBitmap(original, sourceFrame.getWidth(), sourceFrame.getHeight());
+        }
+        sourceImageView.setImageBitmap(scaledBitmap);
+        if (tempBitmap == null) {
+            tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
+        }
+
+        if (pointFs == null) {
+            pointFs = getEdgePoints(tempBitmap);
+        }
+
+        if (listPoints != null) {
+            polygonView.setPointsCoordinates(listPoints);
+            int color = getResources().getColor(R.color.orange);
+            polygonView.paint.setColor(color);
+        } else {
+            polygonView.setPoints(pointFs);
+
+        }
+
         polygonView.setVisibility(View.VISIBLE);
         int padding = (int) getResources().getDimension(R.dimen.scanPadding);
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
         layoutParams.gravity = Gravity.CENTER;
         polygonView.setLayoutParams(layoutParams);
+
     }
 
     private Map<Integer, PointF> getEdgePoints(Bitmap tempBitmap) {
@@ -175,6 +223,12 @@ public class ScanFragment extends Fragment {
         outlinePoints.put(2, new PointF(0, tempBitmap.getHeight()));
         outlinePoints.put(3, new PointF(tempBitmap.getWidth(), tempBitmap.getHeight()));
         return outlinePoints;
+    }
+
+    boolean isValidPoints() {
+        //List<PointF> pointFs = getContourEdgePoints(original);
+        // Map<Integer, PointF> orderedPoints = polygonView.getOrderedPoints(pointFs);
+        return polygonView.isValidShape(polygonView.getPoints());
     }
 
     private Map<Integer, PointF> orderedValidEdgePoints(Bitmap tempBitmap, List<PointF> pointFs) {
@@ -261,7 +315,7 @@ public class ScanFragment extends Fragment {
 
         @Override
         protected ArrayList<Uri> doInBackground(Void... params) {
-           // showProgressDialog(getString(R.string.scanning));
+            // showProgressDialog(getString(R.string.scanning));
 
             for (int i = 0; i < imageList.size(); i++) {
                 Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));

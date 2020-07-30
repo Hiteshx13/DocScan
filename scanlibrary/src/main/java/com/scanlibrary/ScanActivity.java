@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
@@ -64,7 +65,7 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
             listFragments.add(fragment);
         }
 
-        ViewPager mPager = findViewById(R.id.pager);
+        final ViewPager mPager = findViewById(R.id.pager);
 
         pagerAdapter = new ScreenSlidePagerAdapter(this, imageList, listFragments, getSupportFragmentManager());
         mPager.setAdapter(pagerAdapter);
@@ -75,7 +76,15 @@ public class ScanActivity extends FragmentActivity implements IScanner, Componen
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        pagerAdapter.onDoneClicked(counter);
+                        pagerAdapter.onDoneClicked(new OnValidateView() {
+                            @Override
+                            public void isValid(boolean isValid, int pos) {
+                                if (!isValid) {
+                                    Toast.makeText(ScanActivity.this, "Please select valid points", Toast.LENGTH_LONG).show();
+                                    mPager.setCurrentItem(pos,true);
+                                }
+                            }
+                        });
                     }
                 });
             }

@@ -22,7 +22,7 @@ import java.util.Map;
 public class PolygonView extends FrameLayout {
 
     protected Context context;
-    private Paint paint;
+    public Paint paint;
     private ImageView pointer1;
     private ImageView pointer2;
     private ImageView pointer3;
@@ -32,6 +32,7 @@ public class PolygonView extends FrameLayout {
     private ImageView midPointer34;
     private ImageView midPointer24;
     private PolygonView polygonView;
+    public List<PointF> points,invalidPoints;
 
     public PolygonView(Context context) {
         super(context);
@@ -92,9 +93,10 @@ public class PolygonView extends FrameLayout {
         paint.setAntiAlias(true);
     }
 
+
     public Map<Integer, PointF> getPoints() {
 
-        List<PointF> points = new ArrayList<PointF>();
+        points = new ArrayList<PointF>();
         points.add(new PointF(pointer1.getX(), pointer1.getY()));
         points.add(new PointF(pointer2.getX(), pointer2.getY()));
         points.add(new PointF(pointer3.getX(), pointer3.getY()));
@@ -146,6 +148,20 @@ public class PolygonView extends FrameLayout {
 
         pointer4.setX(pointFMap.get(3).x);
         pointer4.setY(pointFMap.get(3).y);
+    }
+
+    public void setPointsCoordinates(List<PointF> listPoints) {
+        pointer1.setX(listPoints.get(0).x);
+        pointer1.setY(listPoints.get(0).y);
+
+        pointer2.setX(listPoints.get(1).x);
+        pointer2.setY(listPoints.get(1).y);
+
+        pointer3.setX(listPoints.get(2).x);
+        pointer3.setY(listPoints.get(2).y);
+
+        pointer4.setX(listPoints.get(3).x);
+        pointer4.setY(listPoints.get(3).y);
     }
 
     @Override
@@ -232,6 +248,7 @@ public class PolygonView extends FrameLayout {
                         color = getResources().getColor(R.color.blue);
                     } else {
                         color = getResources().getColor(R.color.orange);
+                        getCurrentInvalidPoints();
                     }
                     paint.setColor(color);
                     break;
@@ -280,6 +297,7 @@ public class PolygonView extends FrameLayout {
                         color = getResources().getColor(R.color.blue);
                     } else {
                         color = getResources().getColor(R.color.orange);
+                        getCurrentInvalidPoints();
                     }
                     paint.setColor(color);
                     break;
@@ -292,5 +310,13 @@ public class PolygonView extends FrameLayout {
 
     }
 
+    void getCurrentInvalidPoints(){
+        invalidPoints = new ArrayList<PointF>();
+        invalidPoints.add(new PointF(pointer1.getX(), pointer1.getY()));
+        invalidPoints.add(new PointF(pointer2.getX(), pointer2.getY()));
+        invalidPoints.add(new PointF(pointer3.getX(), pointer3.getY()));
+        invalidPoints.add(new PointF(pointer4.getX(), pointer4.getY()));
+
+    }
 
 }
