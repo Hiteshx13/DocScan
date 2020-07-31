@@ -159,6 +159,18 @@ public class ScanFragment extends Fragment {
         return uri;
     }
 
+    /*private void setBitmap(Bitmap original) {
+        Bitmap scaledBitmap = scaledBitmap(original, sourceFrame.getWidth(), sourceFrame.getHeight());
+        sourceImageView.setImageBitmap(scaledBitmap);
+        Bitmap tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
+        Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
+        polygonView.setPoints(pointFs);
+        polygonView.setVisibility(View.VISIBLE);
+        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
+        layoutParams.gravity = Gravity.CENTER;
+        polygonView.setLayoutParams(layoutParams);
+    }*/
     private void setBitmap() {
 
         if (scaledBitmap == null) {
@@ -169,17 +181,15 @@ public class ScanFragment extends Fragment {
             tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
         }
 
-        if (pointFs == null) {
-            pointFs = getEdgePoints(tempBitmap);
-        }
+
 
         if (listPoints != null) {
             polygonView.setPointsCoordinates(listPoints);
             int color = getResources().getColor(R.color.orange);
             polygonView.paint.setColor(color);
         } else {
+            pointFs = getEdgePoints(tempBitmap);
             polygonView.setPoints(pointFs);
-
         }
 
         polygonView.setVisibility(View.VISIBLE);
