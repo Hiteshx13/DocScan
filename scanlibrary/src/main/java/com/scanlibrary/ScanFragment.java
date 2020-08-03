@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -48,6 +48,7 @@ public class ScanFragment extends Fragment {
     String imagePath;
     ScanActivity scanActivity;
     List<PointF> listPoints;
+    ImageButton btnRotateLeft, btnRotateRight;
 
     public ScanFragment(Context context) {
         this.scanActivity = (ScanActivity) context;
@@ -65,6 +66,7 @@ public class ScanFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.scan_fragment_layout, null);
+
         imagePath = (String) this.getArguments().get(Utils.IMAGES);
         init();
         return view;
@@ -85,6 +87,8 @@ public class ScanFragment extends Fragment {
     private void init() {
         sourceImageView = view.findViewById(R.id.sourceImageView);
         progressbar = view.findViewById(R.id.progressbar);
+        btnRotateLeft = view.findViewById(R.id.rotate_left_ib);
+        btnRotateRight = view.findViewById(R.id.rotate_right_ib);
 //        scanButton = view.findViewById(R.id.scanButton);
         // scanButton.setOnClickListener(new ScanButtonClickListener());
         sourceFrame = view.findViewById(R.id.sourceFrame);
@@ -98,6 +102,75 @@ public class ScanFragment extends Fragment {
                 }
             }
         });
+
+        btnRotateLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotatePhoto(-90);
+            }
+        });
+
+        btnRotateRight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotatePhoto(90);
+            }
+        });
+    }
+
+    private void rotatePhoto(float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+
+
+//        scaledBitmap = Bitmap.createScaledBitmap(original,  original.getWidth(),original.getHeight(), true);
+
+        original = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), matrix, true);
+        scaledBitmap = null;
+//        //original = Bitmap.createBitmap(original, 0, 0, original.getHeight(), original.getWidth(), matrix, true);
+//        listPoints = null;
+//        pointFs = getOutlinePoints(original);
+//        sourceImageView.setImageBitmap(original);
+//        polygonView.setPoints(pointFs);
+//
+//        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+//        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(original.getHeight() + 2 * padding, original.getWidth() + 2 * padding);
+//        layoutParams.gravity = Gravity.CENTER;
+//        polygonView.setLayoutParams(layoutParams);
+//
+
+        setBitmap();
+//        sourceImageView.setImageBitmap(original);
+//
+//        tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
+//        pointFs = getEdgePoints(tempBitmap);
+//        polygonView.setPoints(pointFs);
+//        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+//        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
+//        layoutParams.gravity = Gravity.CENTER;
+//        polygonView.setLayoutParams(layoutParams);
+//
+
+//        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+//        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
+//        layoutParams.gravity = Gravity.CENTER;
+//        polygonView.setLayoutParams(layoutParams);
+//        progressBar.setVisibility(View.VISIBLE);
+//        new RotatePhotoTask(note.getImagePath().getPath(), angle, new PhotoSavedListener() {
+//            @Override
+//            public void photoSaved(String path, String name) {
+//                Bitmap bitmap = BitmapFactory.decodeFile(path);
+//                if (bitmap != null) {
+//                    progressBar.setVisibility(View.GONE);
+//                    pinchImageView.setImageBitmap(bitmap);
+//                }
+//            }
+//
+//            @Override
+//            public void onNoteGroupSaved(NoteGroup noteGroup) {
+//
+//            }
+//        }).execute();
     }
 
     public Map<Integer, PointF> getPoints() {
@@ -108,15 +181,19 @@ public class ScanFragment extends Fragment {
         return original;
     }
 
+    public SourceImageRes getSourceImageRes() {
+        return new SourceImageRes(sourceImageView.getWidth(), sourceImageView.getHeight());
+    }
+
     public String getOriginalPath() {
         return imagePath;
     }
 
 
-    public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath) {
+    public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath, ArrayList<SourceImageRes> listSourceImage) {
         Log.d("performOnClick", "start...");
         //if (isScanPointsValid(points)) {
-        new ScanAsyncTask(imageList, listPoints, listPath).execute();
+        new ScanAsyncTask(imageList, listPoints, listPath, listSourceImage).execute();
         //} else {
         //  showErrorDialog();
 //        }
@@ -177,10 +254,9 @@ public class ScanFragment extends Fragment {
             scaledBitmap = scaledBitmap(original, sourceFrame.getWidth(), sourceFrame.getHeight());
         }
         sourceImageView.setImageBitmap(scaledBitmap);
-        if (tempBitmap == null) {
-            tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
-        }
-
+//        if (tempBitmap == null) {
+//            tempBitmap = ((BitmapDrawable) sourceImageView.getDrawable()).getBitmap();
+//        }
 
 
         if (listPoints != null) {
@@ -188,17 +264,18 @@ public class ScanFragment extends Fragment {
             int color = getResources().getColor(R.color.orange);
             polygonView.paint.setColor(color);
         } else {
-            pointFs = getEdgePoints(tempBitmap);
+            pointFs = getEdgePoints(scaledBitmap);
             polygonView.setPoints(pointFs);
         }
 
         polygonView.setVisibility(View.VISIBLE);
         int padding = (int) getResources().getDimension(R.dimen.scanPadding);
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(scaledBitmap.getWidth() + 2 * padding, scaledBitmap.getHeight() + 2 * padding);
         layoutParams.gravity = Gravity.CENTER;
         polygonView.setLayoutParams(layoutParams);
 
     }
+
 
     private Map<Integer, PointF> getEdgePoints(Bitmap tempBitmap) {
         List<PointF> pointFs = getContourEdgePoints(tempBitmap);
@@ -285,11 +362,11 @@ public class ScanFragment extends Fragment {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
     }
 
-    private Bitmap getScannedBitmap(Bitmap original, Map<Integer, PointF> points) {
+    private Bitmap getScannedBitmap(Bitmap original, Map<Integer, PointF> points, SourceImageRes source) {
         int width = original.getWidth();
         int height = original.getHeight();
-        float xRatio = (float) original.getWidth() / sourceImageView.getWidth();
-        float yRatio = (float) original.getHeight() / sourceImageView.getHeight();
+        float xRatio = (float) original.getWidth() / source.width;
+        float yRatio = (float) original.getHeight() / source.height;
 
         float x1 = (points.get(0).x) * xRatio;
         float x2 = (points.get(1).x) * xRatio;
@@ -310,11 +387,13 @@ public class ScanFragment extends Fragment {
         private ArrayList<Map<Integer, PointF>> listPoints;
         ArrayList<Uri> listUri = new ArrayList<>();
         private ArrayList<String> listPath;
+        private ArrayList<SourceImageRes> listSourceImage;
 
-        public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath) {
+        public ScanAsyncTask(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath, ArrayList<SourceImageRes> listSourceImage) {
             this.imageList = imageList;
             this.listPoints = listPoints;
             this.listPath = listPath;
+            this.listSourceImage = listSourceImage;
         }
 
         @Override
@@ -328,7 +407,7 @@ public class ScanFragment extends Fragment {
             // showProgressDialog(getString(R.string.scanning));
 
             for (int i = 0; i < imageList.size(); i++) {
-                Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i));
+                Bitmap bitmap = getScannedBitmap(imageList.get(i), listPoints.get(i),listSourceImage.get(i));
                 Uri uri = Utils.getImageUri(getActivity(), bitmap);
                 listUri.add(uri);
 

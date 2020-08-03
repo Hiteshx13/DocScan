@@ -33,6 +33,8 @@ class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
 
         ArrayList<Map<Integer, PointF>> listPoints = new ArrayList<>();
         ArrayList<Bitmap> listBitmap = new ArrayList<>();
+        ArrayList<SourceImageRes> listSourceImage = new ArrayList<>();
+        ArrayList<Integer> sourceHeight = new ArrayList<>();
         ArrayList<String> listUri = new ArrayList<>();
         boolean isValid = true;
         for (int i = 0; i < listFragments.size(); i++) {
@@ -45,12 +47,13 @@ class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
                 break;
             }
             listPoints.add(fragment.getPoints());
+            listSourceImage.add(fragment.getSourceImageRes());
             listBitmap.add(fragment.getOriginalBitmap());
             listUri.add(fragment.getOriginalPath());
         }
         if (isValid) {
             ScanFragment fragment = listFragments.get(0);
-            fragment.performOnClick(listBitmap, listPoints, listUri);
+            fragment.performOnClick(listBitmap, listPoints, listUri,listSourceImage);
         }
     }
 
