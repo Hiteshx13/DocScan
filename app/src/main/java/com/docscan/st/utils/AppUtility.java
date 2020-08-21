@@ -20,7 +20,9 @@ import com.docscan.st.db.models.Note;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import timber.log.Timber;
@@ -35,6 +37,11 @@ public class AppUtility {
     public static final int CAMERA_REQUEST_CODE = 0x9812;
     public static final int REQUEST_CODE_QR_SCAN = 401;
     public static final String INTENT_DATA_NOTEGROUP_ID = "intent_data_notegroup_id";
+
+
+    private static final String IMG_PREFIX = "IMG_";
+    private static final String IMG_POSTFIX = ".jpg";
+    private static final String TIME_FORMAT = "yyyyMMdd_HHmmss";
 
     public static File getOutputMediaFile(String path, String name) {
         // To be safe, we should check that the SDCard is mounted
@@ -67,6 +74,7 @@ public class AppUtility {
             }
         });
         builder.show();
+
     }
 
     public static void shareDocuments(Context context, ArrayList<Uri> uris) {
@@ -144,5 +152,11 @@ public class AppUtility {
         }
 
         return uris;
+    }
+
+
+    public static String createImageName() {
+        String timeStamp = new SimpleDateFormat(TIME_FORMAT).format(new Date());
+        return IMG_PREFIX + timeStamp + IMG_POSTFIX;
     }
 }

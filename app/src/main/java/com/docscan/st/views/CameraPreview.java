@@ -56,7 +56,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private static final int DISPLAY_ORIENTATION = 90;
     private static final float FOCUS_AREA_SIZE = 75f;
-    private static final float STROKE_WIDTH = 1f;
+    private static final float STROKE_WIDTH = 3f;
     private static final float FOCUS_AREA_FULL_SIZE = 2000f;
     private static final int ACCURACY = 3;
 
@@ -217,6 +217,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private void drawFocusFrame(Rect rect) {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(rect.left, rect.top, rect.right, rect.bottom,paint);
 
 //        canvas.drawLine(rect.left, rect.top, rect.right, rect.top, paint);
@@ -229,25 +230,25 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     private void clearCameraFocus() {
-        if (hasAutoFocus) {
-            focused = false;
-            camera.cancelAutoFocus();
-            if (canvas != null) {
-                tapArea = null;
-                try {
-                    Camera.Parameters parameters = camera.getParameters();
-                    parameters.setFocusAreas(null);
-                    parameters.setMeteringAreas(null);
-                    camera.setParameters(parameters);
-                } catch (Exception e) {
-                    Timber.e(e, "clearCameraFocus");
-                } finally {
-                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                    canvasFrame.draw(canvas);
-                    canvasFrame.invalidate();
-                }
-            }
-        }
+//        if (hasAutoFocus) {
+//            focused = false;
+//            camera.cancelAutoFocus();
+//            if (canvas != null) {
+//                tapArea = null;
+//                try {
+//                    Camera.Parameters parameters = camera.getParameters();
+//                    parameters.setFocusAreas(null);
+//                    parameters.setMeteringAreas(null);
+//                    camera.setParameters(parameters);
+//                } catch (Exception e) {
+//                    Timber.e(e, "clearCameraFocus");
+//                } finally {
+//                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+//                    canvasFrame.draw(canvas);
+//                    canvasFrame.invalidate();
+//                }
+//            }
+//        }
     }
 
     @Override

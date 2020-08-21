@@ -1,5 +1,6 @@
 package com.docscan.st.db.models;
 
+import com.docscan.st.db.PDFScannerDatabase;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.OneToMany;
@@ -12,14 +13,12 @@ import org.parceler.Parcel;
 
 import java.util.List;
 
-import com.docscan.st.db.PDFScannerDatabase;
-
 /**
  * Created by droidNinja on 19/04/16.
  */
 @ModelContainer
 @Table(database = PDFScannerDatabase.class)
-@Parcel(analyze={NoteGroup.class})
+@Parcel(analyze = {NoteGroup.class})
 public class NoteGroup extends BaseModel {
 
     @Column
@@ -43,16 +42,21 @@ public class NoteGroup extends BaseModel {
     public String drivePath;
 
     @Column
+    public String galleryPath;
+
+    @Column
     public int numOfImagesInPDF;
 
     public List<Note> notes;
 
-    public int getID(){
+    public int getID() {
         return id;
     }
-    public void setID(int id){
-        this.id=id;
+
+    public void setID(int id) {
+        this.id = id;
     }
+
     @OneToMany(methods = {OneToMany.Method.SAVE, OneToMany.Method.DELETE}, variableName = "notes")
     public List<Note> getNotes() {
         if (notes == null || notes.isEmpty()) {
@@ -63,6 +67,7 @@ public class NoteGroup extends BaseModel {
         }
         return notes;
     }
+
     @OneToMany(methods = {OneToMany.Method.SAVE, OneToMany.Method.DELETE}, variableName = "notes")
     public List<Note> getNotes(int noteGroupid) {
         if (notes == null || notes.isEmpty()) {

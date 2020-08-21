@@ -219,7 +219,7 @@ public class CameraFragment extends BaseFragment implements PhotoSavedListener, 
         cameraPreview = new CameraPreview(activity, camera, canvasFrame, this, this);
         previewContainer.addView(cameraPreview);
         previewContainer.addView(canvasFrame);
-        cameraPreview.setFocusMode(focusMode);
+        cameraPreview.setFocusMode(FocusMode.AUTO);
 
 
         mCapture = view.findViewById(R.id.capture);

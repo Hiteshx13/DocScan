@@ -1,11 +1,14 @@
 package com.docscan.st.activity;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,6 +44,7 @@ import com.docscan.st.manager.NotificationObserver;
 import com.docscan.st.utils.AppUtility;
 import com.docscan.st.utils.DialogsUtils;
 import com.docscan.st.utils.ItemOffsetDecoration;
+import com.docscan.st.utils.PermissionUtils;
 import com.dropbox.core.android.Auth;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -63,6 +67,10 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import org.parceler.Parcels;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,6 +99,8 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     public static final String IS_IN_ACTION_MODE = "IS_IN_ACTION_MODE";
     private ActionMode actionMode;
+
+    static final Integer REQ_WRITE_EXST = 501;
     private boolean isShareClicked;
     private boolean isSharingQR = false;
     DriveServiceHelper mDriveHelper;
@@ -328,7 +338,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
 
     public void onGeneratePDFClicked(MenuItem item) {
 
-        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
+        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this, mNoteGroup.notes.size());
         bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
 
        /* ArrayList<File> files = getFilesFromNoteGroup();
@@ -389,7 +399,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                                 AndroidHttp.newCompatibleTransport(),
                                 new GsonFactory(),
                                 credential)
-                                .setApplicationName("DocScan").build();
+                                .setApplicationName(getString(R.string.app_name)).build();
 
                         mDriveHelper = new DriveServiceHelper(googleDriveServis);
                         uploadPDFFile();
@@ -503,8 +513,57 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     }
 
     public void onShareButtonClicked(MenuItem item) {
-        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this);
+        ShareDialogFragment bottomSheetDialogFragment = ShareDialogFragment.newInstance(this, mNoteGroup.notes.size());
         bottomSheetDialogFragment.show(getSupportFragmentManager(), bottomSheetDialogFragment.getTag());
+    }
+
+    @Override
+    public void saveImage() {
+        if (PermissionUtils.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+            File fileSource = new File(mNoteGroup.notes.get(0).getImagePath().getPath());
+            final File fileDest = new File(Environment.getExternalStorageDirectory(), AppUtility.createImageName());
+            try {
+                moveFile(fileSource, fileDest);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            DialogsUtils.showMessageDialog(this, this.getString(R.string.please_grant_all_required_permissions_from_application_setting), false, new OnDialogClickListener() {
+                @Override
+                public void onButtonClicked(Boolean value) {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                }
+            });
+            //Toast.makeText(this, getString(R.string.please_grant_all_required_permissions_from_application_setting), Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private void moveFile(File file, File dir) throws IOException {
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        File newFile = new File(dir, file.getName());
+        FileChannel outputChannel = null;
+        FileChannel inputChannel = null;
+        try {
+            outputChannel = new FileOutputStream(newFile).getChannel();
+            inputChannel = new FileInputStream(file).getChannel();
+            inputChannel.transferTo(0, inputChannel.size(), outputChannel);
+            inputChannel.close();
+            // file.delete();
+            Toast.makeText(this, "Image saved", Toast.LENGTH_SHORT).show();
+        } finally {
+            if (inputChannel != null) inputChannel.close();
+            if (outputChannel != null) outputChannel.close();
+        }
+
     }
 
     @Override
@@ -523,9 +582,6 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
         } else {
             showQRcode(mNoteGroup.drivePath);
         }
-
-
-        //AppUtility.shareDocuments(this, AppUtility.getUrisFromNotes(mNoteGroup.getNotes()));
     }
 
     void share(Boolean isQR) {

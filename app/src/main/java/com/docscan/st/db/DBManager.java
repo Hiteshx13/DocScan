@@ -112,4 +112,11 @@ public class DBManager {
                 .where(NoteGroup_Table.id.eq(id))
                 .query();
     }
+
+    public void updateSingleNotePath(int id, String galleryPath) {
+        SQLite.update(NoteGroup.class)
+                .set(NoteGroup_Table.galleryPath.eq(galleryPath))
+                .where(NoteGroup_Table.id.eq(id))
+                .query();
+    }
 }
