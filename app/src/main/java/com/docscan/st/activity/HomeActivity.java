@@ -364,7 +364,6 @@ public class HomeActivity extends BaseActivity implements HomeView {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED) {
-
             if (requestCode == REQ_WRITE_EXST) {
 
             } else if (requestCode == REQ_CAMERA) {

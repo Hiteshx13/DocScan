@@ -9,8 +9,13 @@ import java.util.Map;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.net.Uri;
 import android.text.TextUtils;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.docscan.st.interfaces.Initializer;
 import com.docscan.st.interfaces.PhotoSavedListener;
 import com.docscan.st.interfaces.StorageCallback;
@@ -51,6 +56,7 @@ public enum ImageManager implements Initializer, StorageCallback {
             target.onBitmapLoaded(bitmap, Picasso.LoadedFrom.MEMORY);
         } else {
             ManagedTarget managedTarget = new ManagedTarget(target, path, this);
+
             Picasso.with(context)
                     .load(photo)
                     .skipMemoryCache()
@@ -58,6 +64,22 @@ public enum ImageManager implements Initializer, StorageCallback {
                     .transform(new ScaleTransformation(width, height))
                     .into(managedTarget);
         }
+    }
+
+    public void loadPhoto(String path, int width, int height, ImageView target) {
+
+        Glide.with(context)
+                .asBitmap()
+                .load(Uri.fromFile(new File(path)))
+                .into(target);
+
+//            Picasso.with(context)
+//                    .load(photo)
+//                    .skipMemoryCache()
+//                    .config(Bitmap.Config.ARGB_8888)
+//                    .transform(new ScaleTransformation(width, height))
+//                    .into(managedTarget);
+
     }
 
     public void cropBitmap(String path, Bitmap croppedBitmap, PhotoSavedListener callback) {

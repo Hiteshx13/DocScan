@@ -12,7 +12,7 @@ public final class Const {
 
     public static final class FOLDERS {
 
-        private static final String ROOT = File.separator + ".DocScanner";
+        private static final String ROOT = File.separator + ".DocScan";
 
         private static final String CROP = ROOT + File.separator + "CroppedImages";
 

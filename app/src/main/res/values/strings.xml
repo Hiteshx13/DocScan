@@ -24,6 +24,7 @@
 <resources>
 
     <string name="app_name">DocScan</string>
+    <string name="images">Images</string>
     <string name="lbl_string_apply">Apply</string>
     <string name="client_id">150346749263-05r76pq5cbofd6atoetkn6i681parri6.apps.googleusercontent.com</string>
     <string name="app_key_dropbox">zg4c4qkhg50pvle</string>
@@ -73,6 +74,5 @@ Drive > select file > ... > link sharing on."</string>
     <string name="please_grant_all_required_permissions_from_application_setting">Please grant all required permissions from application setting</string>
     <string name="ok">OK</string>
     <string name="share">SHARE</string>
-
 
 </resources>

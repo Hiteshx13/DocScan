@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Utils {
     private static final String IMAGE_TO_PDF_MODULE = "IMAGE_TO_PDF_MODULE";
 
-    public static final String PDFS_PATH = Environment.getExternalStorageDirectory().getPath() + File.separator + ".DocScanner" + File.separator + "PDFs";
+    public static final String PDFS_PATH = Environment.getExternalStorageDirectory().getPath() + File.separator + ".DocScan" + File.separator + "PDFs";
 
     public static File getOutputMediaFile(String path, String name) {
         // To be safe, we should check that the SDCard is mounted

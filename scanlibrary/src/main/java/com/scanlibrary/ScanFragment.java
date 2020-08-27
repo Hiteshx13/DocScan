@@ -193,7 +193,7 @@ public class ScanFragment extends Fragment {
     public void performOnClick(ArrayList<Bitmap> imageList, ArrayList<Map<Integer, PointF>> listPoints, ArrayList<String> listPath, ArrayList<SourceImageRes> listSourceImage) {
         Log.d("performOnClick", "start...");
         //if (isScanPointsValid(points)) {
-        new ScanAsyncTask(imageList, listPoints, listPath, listSourceImage).execute();
+        new ScanAsyncTask(imageList, listPoints, listPath, listSourceImage).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         //} else {
         //  showErrorDialog();
 //        }

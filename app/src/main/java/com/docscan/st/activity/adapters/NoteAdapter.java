@@ -3,6 +3,7 @@ package com.docscan.st.activity.adapters;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +13,14 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.docscan.st.R;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -140,6 +145,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     }
 
     private void setImageView(final ImageView imageView, Note note) {
+
+//        Glide.with(imageView)
+//                .asBitmap()
+//                .load(new File(note.getImagePath().getPath()))
+//                .into(new SimpleTarget<Bitmap>() {
+//                    @Override
+//                    public void onResourceReady(Bitmap bitmap, Transition<? super Bitmap> transition) {
+//                        imageView.setImageBitmap(bitmap);
+//                    }
+//                });
         Target loadingTarget = new Target() {
 
             @Override
@@ -149,7 +164,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
 
             @Override
             public void onBitmapFailed( Drawable errorDrawable) {
-
+                Log.d("","");
             }
 
             @Override
@@ -159,7 +174,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
 
         };
 
-        ImageManager.i.loadPhoto(note.getImagePath().getPath(), 400, 600, loadingTarget);
+        ImageManager.i.loadPhoto(note.getImagePath().getPath(), 400, 600, imageView);
     }
 
     public void setNotes(List<Note> Notes) {

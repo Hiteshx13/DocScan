@@ -520,11 +520,9 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
     @Override
     public void saveImage() {
         if (PermissionUtils.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-
             File fileSource = new File(mNoteGroup.notes.get(0).getImagePath().getPath());
-            final File fileDest = new File(Environment.getExternalStorageDirectory(), AppUtility.createImageName());
             try {
-                moveFile(fileSource, fileDest);
+                moveFile(fileSource);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -540,16 +538,15 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             });
             //Toast.makeText(this, getString(R.string.please_grant_all_required_permissions_from_application_setting), Toast.LENGTH_SHORT).show();
         }
-
     }
 
-    private void moveFile(File file, File dir) throws IOException {
-
-        if (!dir.exists()) {
-            dir.mkdirs();
+    private void moveFile(File file) throws IOException {
+        final File fileDest = new File(Environment.getExternalStorageDirectory()  /*"/" + getString(R.string.images) */+ "/" + getString(R.string.images));
+        if (!fileDest.exists()) {
+            fileDest.mkdirs();
         }
 
-        File newFile = new File(dir, file.getName());
+        File newFile = new File(fileDest, file.getName());
         FileChannel outputChannel = null;
         FileChannel inputChannel = null;
         try {
@@ -563,7 +560,6 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             if (inputChannel != null) inputChannel.close();
             if (outputChannel != null) outputChannel.close();
         }
-
     }
 
     @Override
@@ -624,7 +620,6 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                 public void onUploadComplete(FileMetadata result) {
                     Log.d("", "");
                     progressBar.setVisibility(View.GONE);
-
                 }
 
                 @Override
@@ -633,17 +628,10 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
                     progressBar.setVisibility(View.GONE);
                 }
             }).execute(mNoteGroup.pdfPath);
-           /* new UploadTask(DropboxClient.getClient(accessToken), file, this, new OnDropBoxUploaded() {
-                @Override
-                public void onFileUploaded(String s) {
-                    Log.d("","");
-                }
-            }).execute();*/
         }
     }
 
     void performGoogleLogin() {
-
         if (googleDriveServis == null) {
             requestGooogleSignIn();
         } else {
