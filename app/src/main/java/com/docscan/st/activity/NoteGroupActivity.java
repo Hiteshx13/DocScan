@@ -554,6 +554,7 @@ public class NoteGroupActivity extends BaseActivity implements NotificationObser
             inputChannel = new FileInputStream(file).getChannel();
             inputChannel.transferTo(0, inputChannel.size(), outputChannel);
             inputChannel.close();
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,Uri.fromFile(newFile)));
             // file.delete();
             Toast.makeText(this, "Image saved", Toast.LENGTH_SHORT).show();
         } finally {
