@@ -417,9 +417,11 @@ public class HomeActivity extends BaseActivity implements HomeView {
     //147041383461-oue2nri37orkgrvb4mgo29q3f91mla2i.apps.googleusercontent.com
     public void onScanQRClicked(MenuItem item) {
         //new IntentIntegrator(this).initiateScan();
+        if (PermissionUtils.askForPermission(this, Manifest.permission.CAMERA, REQ_CAMERA)) {
+            Intent intent = new Intent(this, SimpleScannerActivity.class);
+            startActivity(intent);
+        }
 
-        Intent intent = new Intent(this, SimpleScannerActivity.class);
-        startActivity(intent);
 //        if (mDriveHelper == null) {
 //            requestGooogleSignIn();
 //        } else {
